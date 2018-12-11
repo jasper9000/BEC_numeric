@@ -10,10 +10,10 @@ import cmath
 pi = math.pi
 
 def save_psi_array(array, filename):
-    pickle.dump(array, open("saved_simulations/"+filename, "wb"))
+    pickle.dump(array, open(filename, "wb"))
 
 def load_psi_array(filename):
-    return pickle.load(open("saved_simulations/"+filename, "rb"))
+    return pickle.load(open(filename, "rb"))
 
 
 def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):

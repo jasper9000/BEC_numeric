@@ -12,10 +12,6 @@ import time
 
 from BEC_lib import *
 
-# delete this line, only here because of VS Code being annoying O_o
-os.chdir("C:/Users/J/Desktop/Uni/WS1819/Numerik Projekt/")
-print(os.getcwd())
-
 pi = math.pi
 
 def calculate_time_step(psi_n, V, boundaries, omega, beta2, epsilon_limit=10e-6):
@@ -81,13 +77,13 @@ boundaries = (a, b, c, d)
 
 
 ###### constants #######
-beta2 = 4000
+beta2 = 8000
 omega = 100
 
 # potential
-V0 = 1
+V0 = 5
 wx = 10
-wy = 10
+wy = 15
 gamma_y = wy / wx
 
 # psi_0
@@ -123,8 +119,6 @@ epsilon_t = 1
 t = 1
 
 while epsilon_t > epsilon_t_limit:
-    print("t = {}, epsilon_t = {}".format(t, epsilon_t))
-
     # do the time step
     psi_n = calculate_time_step(psi_n, V, boundaries, omega, beta2, epsilon_m_limit)
     psi_dt_array.append( psi_n )
@@ -134,10 +128,11 @@ while epsilon_t > epsilon_t_limit:
     psi_max_new = np.max(psi_n)
     epsilon_t = abs(psi_max - psi_max_new)
 
+    print("t = {}, epsilon_t = {}".format(t, epsilon_t))
     t += 1
 
 
 
 filename = "dt_" + str(dt) + "_beta_" + str(int(beta2)) + "_omega_" + str(int(omega)) + "_" + str(int(time.time())) + ".p"
-save_psi_array(psi_dt_array, filename)
+# save_psi_array(psi_dt_array, "saved_simulations/"+filename)
 display_psi_array(np.abs(psi_dt_array)**2)
