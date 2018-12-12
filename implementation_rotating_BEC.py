@@ -14,7 +14,7 @@ from BEC_lib import *
 
 pi = math.pi
 
-def calculate_time_step(psi_n, V, boundaries, omega, beta2, epsilon_limit=10e-6):
+def calculate_time_step(psi_n, V, boundaries, omega, beta2, dt, epsilon_limit=10e-6):
     # set up epsilon
     psi_max = 0
     psi_max_new = np.max(psi_n)
@@ -120,13 +120,13 @@ t = 1
 
 while epsilon_t > epsilon_t_limit:
     # do the time step
-    psi_n = calculate_time_step(psi_n, V, boundaries, omega, beta2, epsilon_m_limit)
+    psi_n = calculate_time_step(psi_n, V, boundaries, omega, beta2, dt, epsilon_m_limit)
     psi_dt_array.append( psi_n )
 
     # calculate epsilon
     psi_max = psi_max_new
     psi_max_new = np.max(psi_n)
-    epsilon_t = abs(psi_max - psi_max_new)
+    epsilon_t = abs(psi_max - psi_max_new)/dt
 
     print("t = {}, epsilon_t = {}".format(t, epsilon_t))
     t += 1
