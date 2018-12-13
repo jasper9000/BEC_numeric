@@ -14,7 +14,7 @@ from BEC_lib import *
 
 pi = math.pi
 
-def calculate_time_step(psi_n, V, boundaries, omega, beta2, epsilon_limit=10e-6):
+def calculate_time_step(psi_n, V, boundaries, omega, beta2, dt, epsilon_limit=10e-6):
     # set up epsilon
     psi_max = 0
     psi_max_new = np.max(psi_n)
@@ -47,7 +47,7 @@ def calculate_time_step(psi_n, V, boundaries, omega, beta2, epsilon_limit=10e-6)
         # calculate epsilon
         psi_max = psi_max_new
         psi_max_new = np.max(psi_m)
-        epsilon = abs(psi_max - psi_max_new)
+        epsilon = abs(psi_max - psi_max_new)/dt
 
         # next step
         
@@ -77,13 +77,13 @@ boundaries = (a, b, c, d)
 
 
 ###### constants #######
-beta2 = 8000
-omega = 100
+beta2 = 10000
+omega = 500
 
 # potential
-V0 = 5
+V0 = 1
 wx = 10
-wy = 15
+wy = 10
 gamma_y = wy / wx
 
 # psi_0
@@ -118,17 +118,19 @@ psi_max_new = np.max(psi_n)
 epsilon_t = 1
 t = 1
 
-while epsilon_t > epsilon_t_limit:
+while (t < 500) and (epsilon_t > epsilon_t_limit):
     # do the time step
-    psi_n = calculate_time_step(psi_n, V, boundaries, omega, beta2, epsilon_m_limit)
+    psi_n_old = psi_n
+    psi_n = calculate_time_step(psi_n, V, boundaries, omega, beta2, dt, epsilon_m_limit)
     psi_dt_array.append( psi_n )
 
     # calculate epsilon
     psi_max = psi_max_new
     psi_max_new = np.max(psi_n)
-    epsilon_t = abs(psi_max - psi_max_new)
+    epsilon_t = abs(psi_max - psi_max_new)/dt
+    epsilon_total = np.sum(np.abs(psi_n_old - psi_n))/(dt*M*N)
 
-    print("t = {}, epsilon_t = {}".format(t, epsilon_t))
+    print("t = {}, epsilon_t = {}, epsiolon_total = {}".format(t, epsilon_t, epsilon_total))
     t += 1
 
 

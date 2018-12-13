@@ -40,23 +40,27 @@ def plot3D(x,y,z):
 
 
 def potential(x, y, gamma_y):
+    #given potential
     return 0.5*(x**2 + (gamma_y*y)**2)
 
 
 def gaussian(x, y, boundaries, sigma=1, x0=0, y0=0):
-
+    #starting Psi
     g = 1/(sigma**2 * 2*pi) * np.exp(-0.5*((x-x0)**2 + (y-y0)**2)/sigma**2)
     return g / discrete_norm(g, boundaries)
 
+
 def discrete_norm(psi, boundaries):
+    #returns norm of vector
     M, N = psi.shape
     a, b, c, d = boundaries
     dx = (b-a)/M
     dy = (d-c)/N
     return np.sqrt(np.sum(np.abs(psi)**2) * dx * dy)
 
-@jit(nopython=True)
+@jit(nopython=True) #faster calculation
 def DFT(psi):
+    #not in use
     M, N = psi.shape
     psi_hat = np.zeros((M, N)) + (0+0j)
     for p in range(-M//2, M//2):
@@ -70,11 +74,13 @@ def DFT(psi):
     return psi_hat
 
 def fastDFT(psi):
+    #FFT 
     M, N = psi.shape
     return np.fft.fft2(psi)/(M*N)
 
 @jit(nopython=True)
 def iDFT(psi):
+    #not in use
     M, N = psi.shape
     psi_hat = np.zeros((N, M)) + (0+0j)
     for p in range(-M//2, M//2):
@@ -87,12 +93,14 @@ def iDFT(psi):
     return psi_hat
 
 def fastiDFT(psi):
+    #inverse FFT
     M, N = psi.shape
     return np.fft.ifft2(psi)*N*M
 
 
 @jit(nopython=True)
 def nabla_2(psi_hat, boundaries):
+    #not in use
     a, b, c, d = boundaries
     M, N = psi_hat.shape
     psi = np.ones((M,N)) + (0+0j)
@@ -110,6 +118,7 @@ def nabla_2(psi_hat, boundaries):
 
 @jit
 def L(psi, psi_hat, boundaries):
+    #not in use
     a, b, c, d = boundaries
     M, N = psi.shape
     psi_dx = np.ones((M,N)) + (0+0j)
@@ -140,6 +149,7 @@ def L(psi, psi_hat, boundaries):
 
 @jit
 def fastL(psi, psi_hat, boundaries):
+    #calculates L operator acting on psi; returns psi_L
     a, b, c, d = boundaries
     M, N = psi.shape
 
@@ -169,6 +179,7 @@ def fastL(psi, psi_hat, boundaries):
 
 @jit(nopython=True)
 def G(psi_n, psi_m, psi_m_L, V, beta, omega):
+    #calculates G; paper p.3(3.19) 
     b = V + beta*np.abs(psi_n)**2
     bmin = np.min(b)
     bmax = np.max(b)
@@ -181,6 +192,7 @@ def G(psi_n, psi_m, psi_m_L, V, beta, omega):
 
 @jit(nopython=True)
 def next_psi(psi_hat, g_hat, dt, alpha, boundaries):
+    #iteration of psi; not optimized
     a, b, c, d = boundaries
     M, N = psi_hat.shape
     next_psi_hat = np.zeros((N,M)) + (0+0j)
