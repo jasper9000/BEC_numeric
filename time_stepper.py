@@ -67,20 +67,7 @@ class ImaginaryTimeStepper:
 
         psi_m_next.setPsiHat(psi_m_hat)
         return psi_m_hat
-
-        # old code, should do the same thing but is way slower
-
-        # next_psi_hat = np.zeros((M,N)) + (0+0j)
-        # for p in range(-M//2, M//2):
-        #     for q in range(-N//2, N//2):
-        #         my_p = 2*p*np.pi/(b-a)
-        #         lambda_q = 2*q*np.pi/(d-c)
-        #         next_psi_hat[p,q] = self.psi_n.psi_hat_array[p,q] + dt * G_m.psi_hat_array[p,q]
-        #         next_psi_hat[p,q] *= 2 / (2 + dt*(2*alpha + my_p**2 + lambda_q**2))
         
-        # psi_m_next.setPsiHat(next_psi_hat)
-        # return next_psi_hat
-
     def calculate_time_step(self):
         # set up epsilon
         epsilon_iteration_step = 1

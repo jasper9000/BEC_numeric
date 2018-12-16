@@ -18,7 +18,6 @@ def timer(func):
 class ParameterObject:
     def __init__(self, resolutionX = 256, resolutionY = 256,
     x_low = -10, x_high = 10, y_low = -10, y_high = 10,
-    V0 = 1, gamma_y = 1,
     beta2 = 8000, omega = 100):
 
         self.resolutionX = resolutionX
@@ -40,7 +39,6 @@ class ParameterObject:
         # initialize the potential array V
 
         self.V = np.zeros((self.resolutionX, self.resolutionY))
-        self.initVharmonic(V0, gamma_y)
 
         # constants for the BEC itself
         self.beta2 = beta2
@@ -49,6 +47,10 @@ class ParameterObject:
     def initVharmonic(self, V0 = 0, gamma_y = 1):
         xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='xy')
         self.V = V0 * 0.5*(xx**2 + (gamma_y*yy)**2)
+
+    def initVharmonic_quartic(self, alpha, kappa):
+        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='xy')
+        self.V = (1-alpha)*(xx**2 + yy**2) + kappa * (xx**2+yy**2)**2
 
     def getResolution(self):
         # returns a 2 element tuple with the X- and Y- resolution
@@ -182,7 +184,6 @@ class WaveFunction2D:
         # #Dy_psi.psi_array /= N*M
 
         # calculating D_x(Psi) and D_y(Psi) first to later Calculate L
-        # SHIT DOES NOT WORK!
 
         p = np.arange(-M//2, M//2, 1)
         q = np.arange(-N//2, N//2, 1)
