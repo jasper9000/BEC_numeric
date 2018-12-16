@@ -77,8 +77,8 @@ boundaries = (a, b, c, d)
 
 
 ###### constants #######
-beta2 = 10000
-omega = 500
+beta2 = 1000
+omega = 0.8
 
 # potential
 V0 = 1
@@ -93,7 +93,7 @@ y0 = 0
 
 # time propagation
 dt = 0.005
-epsilon_t_limit = 10e-7
+epsilon_t_limit = 10e-2
 epsilon_m_limit = 10e-7
 
 
@@ -117,8 +117,7 @@ psi_max = 0
 psi_max_new = np.max(psi_n)
 epsilon_t = 1
 t = 1
-
-while (t < 500) and (epsilon_t > epsilon_t_limit):
+while (t < 1000) and (epsilon_t > 10e-8):
     # do the time step
     psi_n_old = psi_n
     psi_n = calculate_time_step(psi_n, V, boundaries, omega, beta2, dt, epsilon_m_limit)
@@ -128,12 +127,24 @@ while (t < 500) and (epsilon_t > epsilon_t_limit):
     psi_max = psi_max_new
     psi_max_new = np.max(psi_n)
     epsilon_t = abs(psi_max - psi_max_new)/dt
-    epsilon_total = np.sum(np.abs(psi_n_old - psi_n))/(dt*M*N)
+    epsilon_total = np.sum(np.abs(psi_n - psi_n_old))/(dt*M*N)
+    
+    # adaptive time step
 
-    print("t = {}, epsilon_t = {}, epsiolon_total = {}".format(t, epsilon_t, epsilon_total))
+    if (epsilon_t < epsilon_t_limit)  and (dt < 10):
+        dt=dt*2
+    # if epsilon_total > 0.6 :
+    #     if dt > 0.0005 :
+    #         dt = dt*0.5
+    # else :
+    #     while epsilon_total < 2 and dt < 0.1 :
+    #         dt = dt*2
+    #         big = calculate_time_step(psi_n, V, boundaries, omega, beta2, dt, epsilon_m_limit)
+    #         epsilon_total = np.sum(np.abs(psi_n - big))/(dt*M*N)
+        
+        
+    print("t = {}, dt = {}, epsilon_t = {}, epsilon_total = {}".format(t, dt, epsilon_t, epsilon_total))
     t += 1
-
-
 
 filename = "dt_" + str(dt) + "_beta_" + str(int(beta2)) + "_omega_" + str(int(omega)) + "_" + str(int(time.time())) + ".p"
 # save_psi_array(psi_dt_array, "saved_simulations/"+filename)
