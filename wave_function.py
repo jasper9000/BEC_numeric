@@ -1,9 +1,25 @@
 import numpy as np
 import numpy.fft as fft
+from numba import jit
+from mpl_toolkits import mplot3d
+
+from timeit import default_timer
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = default_timer()
+        r = func(*args, **kwargs)
+        print("Function {} took {:.4} s".format(func.__name__, default_timer() - start))
+        return r
+    return wrapper
 
 
 class ParameterObject:
-    def __init__(self, resolutionX = 256, resolutionY = 256, x_low = -10, x_high = 10, y_low = -10, y_high = 10, V0 = 1, gamma_y = 1):
+    def __init__(self, resolutionX = 256, resolutionY = 256,
+    x_low = -10, x_high = 10, y_low = -10, y_high = 10,
+    V0 = 1, gamma_y = 1,
+    beta2 = 8000, omega = 100):
+
         self.resolutionX = resolutionX
         self.resolutionY = resolutionY
 
@@ -15,15 +31,19 @@ class ParameterObject:
 
         # calculate the spatial step and make a coordinate array
         self.dx = (self.x_high - self.x_low)/self.resolutionX
-        self.x = np.arange(self.x_low, self.x_high, self.dx)
+        self.x = np.linspace(self.x_low, self.x_high, self.resolutionX)
 
         self.dy = (self.y_high - self.y_low)/self.resolutionY
-        self.y = np.arange(self.y_low, self.y_high, self.dy)
+        self.y = np.linspace(self.y_low, self.y_high, self.resolutionY)
 
         # initialize the potential array V
 
         self.V = np.zeros((self.resolutionX, self.resolutionY))
         self.initVharmonic(V0, gamma_y)
+
+        # constants for the BEC itself
+        self.beta2 = beta2
+        self.omega = omega
 
     def initVharmonic(self, V0 = 0, gamma_y = 1):
         xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='xy')
@@ -58,18 +78,21 @@ class WaveFunction2D:
         self.L_psi_array = np.zeros(self.paramObj.getResolution())
     
     def setPsi(self, array):
+        # a method to manually set psi to a given 2d array
         if array.shape != self.paramObj.getResolution():
             raise ValueError("Shape {} of input array does not match the reesolution {}.".format(array.shape, self.paramObj.getResolution()))
         self.psi_array = array
         self.psi_contains_values = True
 
     def setPsiHat(self, array):
+        # a method to manually set psi_hat to a given 2d array
         if array.shape != self.paramObj.getResolution():
             raise ValueError("Shape {} of input array does not match the resolution {}.".format(array.shape, self.paramObj.getResolution()))
         self.psi_hat_array = array
         self.psi_hat_contains_values = True
 
     def initPsiGauss(self, sigma=1, x0=0, y0=0):
+        # initializes Psi with a simple 2d gaussian
         xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='xy')
 
         self.psi_array = 1/(sigma**2) * np.exp(-0.5*((xx-x0)**2 + (yy-y0)**2)/sigma**2)
@@ -77,11 +100,30 @@ class WaveFunction2D:
         self.psi_contains_values = True
         return self.psi_array
 
+    def initPsi_0(self):
+        # initial wave functions according to paper by bao and wang
+        def norm(a):
+            return a / np.sqrt( np.sum(np.abs(a)**2) * self.paramObj.dx * self.paramObj.dy )
+
+        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='xy')
+        phi_1 = (xx+1j*yy)/np.sqrt(np.pi) * np.exp(-0.5*(xx**2 + yy**2))
+        phi_2 = 1/np.sqrt(np.pi) * np.exp(-0.5*(xx**2 + yy**2))
+        phi_3 = (phi_1 + phi_2)/2
+        phi_3 = norm(phi_3)
+        phi_4 = (1-self.paramObj.omega)*phi_2 + self.paramObj.omega * phi_1
+        phi_4 = norm(phi_4)
+
+        self.psi_array = phi_4
+        self.psi_contains_values = True
+        return self.psi_array
+
     def norm(self):
+        # normalizes Psi
         self.psi_array /= np.sqrt( np.sum(np.abs(self.psi_array)**2) * self.paramObj.dx * self.paramObj.dy )
         return self.psi_array
 
     def calcFFT(self):
+        # calculates the FFT
         if not self.psi_contains_values:
             raise ValueError("Psi does not contain values or Psi was not initialized!")
         else:
@@ -90,14 +132,22 @@ class WaveFunction2D:
             return self.psi_hat_array
 
     def calcIFFT(self):
+        # calculates the inverse FFT
         if not self.psi_hat_contains_values:
             raise ValueError("Psi_hat does not contain values or Psi_hat was not initialized!")
         else:
             self.psi_array = np.fft.ifft2(self.psi_hat_array) * (np.prod(self.paramObj.getResolution()))
             self.psi_contains_values = True
             return self.psi_array
-
+    #@timer
     def calcL(self):
+        # just a wrapper function for calcL_jit to use a timer
+        return self.calcL_jit()
+
+    @jit
+    def calcL_jit(self):
+        # calculates L acting on psi
+
         # set some aliases for resolution and boundaries to make the code more readable
         a, b, c, d = self.paramObj.getBoundaries()
         M, N = self.paramObj.getResolution()
@@ -106,8 +156,6 @@ class WaveFunction2D:
         if not self.psi_hat_contains_values:
             print("[WARNING] calculating psi_hat since it is empty")
             self.calcFFT()
-        else:
-            print("[WARNING] psi_hat has values, will use them and NOT calculate again")
 
         # calculating D_x(Psi) and D_y(Psi) first to later Calculate L
         p = np.arange(-M//2, M//2, 1)
@@ -130,22 +178,45 @@ class WaveFunction2D:
         # adding Dx and Dy up to L
         xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='xy')
 
-        self.L_psi = xx * Dy_psi.psi_array - yy * Dx_psi.psi_array
-        return self.L_psi
+        self.L_psi_array = xx * Dy_psi.psi_array - yy * Dx_psi.psi_array
+        self.L_psi_contains_values = True
+        return self.L_psi_array
+
+    def calcG_m(self, psi_m, alpha):
+        # this function calculates G. supposed to be called by psi_n with a given Psi_m as a parameter
+        if alpha < 0:
+            print("ALERT, alpha < 0!")
+        if type(psi_m) != WaveFunction2D:
+            raise TypeError("Parameter Psi_m has to be of type WaveFunction2D.")
+        if not self.psi_contains_values or not psi_m.psi_contains_values or not psi_m.L_psi_contains_values:
+            raise ValueError("Something was not calculated...")
+
+        g = alpha * psi_m.psi_array - self.paramObj.V * psi_m.psi_array - self.paramObj.beta2*np.abs(self.psi_array)**2 * psi_m.psi_array + self.paramObj.omega * psi_m.L_psi_array
+        return g
+
+    def plot3D(self):
+        # just a simple function that quickly plots a wave function
+        ax = plt.axes(projection='3d')
+        ax.contour3D(self.paramObj.x, self.paramObj.y, np.abs(self.psi_array)**2, 70, cmap='viridis')
+        # ax.contour3D(self.paramObj.x, self.paramObj.y, self.psi_array.imag, 70, cmap='viridis')
+        plt.show()
 
 
+# just some test code from here on
 
+# p = ParameterObject(resolutionX=501, resolutionY=501, omega = 0.9, beta2=100)
+# w = WaveFunction2D(p)
+# w.initPsi_0()
 
+# w.calcFFT()
+# #w.calcIFFT()
+# w.calcL()
 
-p = ParameterObject(resolutionX=501, resolutionY=501)
-w = WaveFunction2D(p)
-w.initPsiGauss(sigma=0.5)
+# import matplotlib.pyplot as plt
 
-w.calcFFT()
-#w.calcIFFT()
-w.calcL()
+# plt.plot(p.x, p.x)
+# plt.show()
 
-import matplotlib.pyplot as plt
-
-plt.imshow(np.abs(w.L_psi))
-plt.show()
+# w.plot3D()
+# plt.imshow(np.abs(w.psi_array))
+# plt.show()
