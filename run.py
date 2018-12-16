@@ -23,7 +23,6 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
         if dynamic_colorbar:
             vmin = np.min(array[i])
             vmax = np.max(array[i])
-            print(vmin, vmax)
             im.set_clim(vmin,vmax)
         return im
     anim = animation.FuncAnimation(fig, update, blit=False, frames=len(array), interval=playback_speed)
@@ -32,18 +31,26 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 
 # initialize objects
-p = ParameterObject(resolutionX=256, resolutionY=256, beta2=100, omega=0.8)
+p = ParameterObject(resolutionX=513, resolutionY=513, beta2=1000, omega=0.8)
 w = WaveFunction2D(p)
 w.initPsi_0()
+# w.initPsiGauss(x0=0, y0=0)
+# w.calcFFT()
+# w.calcL()
+
+# plt.imshow(np.abs(w.L_psi_array))
+# plt.colorbar()
+# plt.show()
+
 i = ImaginaryTimeStepper(w, p, epsilon_iteration_step_limit=10e-3)
 
 # calculate frames
 # just do 20 frames as an example
 frames = [i.returnFrame()]
-for t in range(20):
+for t in range(50):
     print("Calculating Frame {}".format(t+1))
     i.calculate_time_step()
     frames.append(i.returnFrame())
 
 # display the frames
-display_psi_array(frames, 150)
+display_psi_array(frames, 200)

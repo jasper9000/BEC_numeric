@@ -2,6 +2,7 @@ import numpy as np
 import numpy.fft as fft
 from numba import jit
 from mpl_toolkits import mplot3d
+import matplotlib.pyplot as plt
 
 from timeit import default_timer
 
@@ -69,13 +70,13 @@ class WaveFunction2D:
         self.paramObj = parameterObject
 
         self.psi_contains_values = False
-        self.psi_array = np.zeros(self.paramObj.getResolution())
+        self.psi_array = np.zeros(self.paramObj.getResolution()) + (0+0j)
 
         self.psi_hat_contains_values = False
-        self.psi_hat_array = np.zeros(self.paramObj.getResolution())
+        self.psi_hat_array = np.zeros(self.paramObj.getResolution()) + (0+0j)
 
         self.L_psi_contains_values = False
-        self.L_psi_array = np.zeros(self.paramObj.getResolution())
+        self.L_psi_array = np.zeros(self.paramObj.getResolution()) + (0+0j)
     
     def setPsi(self, array):
         # a method to manually set psi to a given 2d array
@@ -127,7 +128,7 @@ class WaveFunction2D:
         if not self.psi_contains_values:
             raise ValueError("Psi does not contain values or Psi was not initialized!")
         else:
-            self.psi_hat_array = np.fft.fft2(self.psi_array)/(np.prod(self.paramObj.getResolution()))
+            self.psi_hat_array = np.fft.fft2(self.psi_array) #/(np.prod(self.paramObj.getResolution()))
             self.psi_hat_contains_values = True
             return self.psi_hat_array
 
@@ -136,9 +137,10 @@ class WaveFunction2D:
         if not self.psi_hat_contains_values:
             raise ValueError("Psi_hat does not contain values or Psi_hat was not initialized!")
         else:
-            self.psi_array = np.fft.ifft2(self.psi_hat_array) * (np.prod(self.paramObj.getResolution()))
+            self.psi_array = np.fft.ifft2(self.psi_hat_array) #* (np.prod(self.paramObj.getResolution()))
             self.psi_contains_values = True
             return self.psi_array
+
     #@timer
     def calcL(self):
         # just a wrapper function for calcL_jit to use a timer
@@ -157,23 +159,51 @@ class WaveFunction2D:
             print("[WARNING] calculating psi_hat since it is empty")
             self.calcFFT()
 
+        # doing this with a for loop because numpy doesnt work the way i want it to
+        # Dx_psi = WaveFunction2D(self.paramObj)
+        # Dy_psi = WaveFunction2D(self.paramObj)
+
+        # for p in range(-M//2, M//2):
+        #     for q in range(-N//2, N//2): 
+        #         my_p = 2*p*np.pi/(b-a)
+        #         lambda_q = 2*q*np.pi/(d-c)
+        #         Dx_psi.psi_hat_array[p,q] = self.psi_hat_array[p,q] * my_p
+        #         Dy_psi.psi_hat_array[p,q] = self.psi_hat_array[p,q] * lambda_q
+        #         # psi_dx_hat[p,q] = psi_hat[p, q] * my_p
+        #         # psi_dy_hat[p,q] = psi_hat[p, q] * lambda_q
+
+        # Dx_psi.psi_hat_contains_values = True
+        # Dy_psi.psi_hat_contains_values = True
+
+        # Dx_psi.calcIFFT()
+        # #Dx_psi.psi_array /= N*M
+
+        # Dy_psi.calcIFFT()
+        # #Dy_psi.psi_array /= N*M
+
         # calculating D_x(Psi) and D_y(Psi) first to later Calculate L
+        # SHIT DOES NOT WORK!
+
         p = np.arange(-M//2, M//2, 1)
         q = np.arange(-N//2, N//2, 1)
-        pp, qq = np.meshgrid(p, q, indexing='xy')
+        pp, qq = np.meshgrid(p, q, indexing='ij')
 
         lambda_q = 2*qq*np.pi/(d-c)
         my_p = 2*pp*np.pi/(b-a)
 
+        my_p = np.fft.fftshift(my_p)
+        lambda_q = np.fft.fftshift(lambda_q)
+
+
         Dx_psi = WaveFunction2D(self.paramObj)
         Dx_psi.setPsiHat(my_p * self.psi_hat_array)
         Dx_psi.calcIFFT()
-        Dx_psi.psi_array /= np.prod( self.paramObj.getResolution() )
+        # Dx_psi.psi_array /= np.prod( M*N )
 
         Dy_psi = WaveFunction2D(self.paramObj)
         Dy_psi.setPsiHat(lambda_q * self.psi_hat_array)
         Dy_psi.calcIFFT()
-        Dy_psi.psi_array /= np.prod( self.paramObj.getResolution() )
+        # Dy_psi.psi_array /= np.prod( M*N )
 
         # adding Dx and Dy up to L
         xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='xy')
@@ -190,8 +220,12 @@ class WaveFunction2D:
             raise TypeError("Parameter Psi_m has to be of type WaveFunction2D.")
         if not self.psi_contains_values or not psi_m.psi_contains_values or not psi_m.L_psi_contains_values:
             raise ValueError("Something was not calculated...")
-
+        
         g = alpha * psi_m.psi_array - self.paramObj.V * psi_m.psi_array - self.paramObj.beta2*np.abs(self.psi_array)**2 * psi_m.psi_array + self.paramObj.omega * psi_m.L_psi_array
+        # print("alpha = ", alpha)
+        # print("max psi_l = ", np.max(psi_m.L_psi_array))
+
+        # print("Max Value for g:", np.max(g))
         return g
 
     def plot3D(self):
@@ -201,22 +235,3 @@ class WaveFunction2D:
         # ax.contour3D(self.paramObj.x, self.paramObj.y, self.psi_array.imag, 70, cmap='viridis')
         plt.show()
 
-
-# just some test code from here on
-
-# p = ParameterObject(resolutionX=501, resolutionY=501, omega = 0.9, beta2=100)
-# w = WaveFunction2D(p)
-# w.initPsi_0()
-
-# w.calcFFT()
-# #w.calcIFFT()
-# w.calcL()
-
-# import matplotlib.pyplot as plt
-
-# plt.plot(p.x, p.x)
-# plt.show()
-
-# w.plot3D()
-# plt.imshow(np.abs(w.psi_array))
-# plt.show()

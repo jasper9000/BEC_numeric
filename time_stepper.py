@@ -51,8 +51,19 @@ class ImaginaryTimeStepper:
         lambda_q = 2*qq*np.pi/(d-c)
         my_p = 2*pp*np.pi/(b-a)
 
+        my_p = np.fft.fftshift(my_p)
+        lambda_q = np.fft.fftshift(lambda_q)
+
         psi_m_hat = self.psi_n.psi_hat_array + dt * G_m.psi_hat_array
         psi_m_hat *= 2 / (2 + dt*(2*alpha + my_p**2 + lambda_q**2))
+
+        # psi_m_hat = np.zeros((M, N)) + (0+0j)
+        # for p in range(-M//2, M//2, 1):
+        #     for q in range(-N//2, N//2, 1):
+        #         lambda_q = 2*q*np.pi/(d-c)
+        #         my_p = 2*p*np.pi/(b-a)
+        #         psi_m_hat[p,q] = self.psi_n.psi_hat_array[p,q] + dt * G_m.psi_hat_array[p,q]
+        #         psi_m_hat[p,q] *= 2 / (2 + dt*(2*alpha + my_p**2 + lambda_q**2))
 
         psi_m_next.setPsiHat(psi_m_hat)
         return psi_m_hat
@@ -104,7 +115,7 @@ class ImaginaryTimeStepper:
             psi_max_old = psi_max
             psi_max = psi_m.psi_array
             epsilon_iteration_step = np.max(np.abs(psi_max_old - psi_max)) / self.dt
-            # print('Epsilon iteration step = {}'.format(epsilon_iteration_step))
+            # print('\tEpsilon m = {}, iteration step = {}'.format(m, epsilon_iteration_step))
 
         # end of iteration, psi_m (hopefully) converged to psi_n+1
         # renormalize psi_m for the next time step
