@@ -31,13 +31,13 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 
 # initialize objects
-p = ParameterObject(resolutionX=201, resolutionY=201, beta2=1000, omega=0.9)
+p = ParameterObject(resolutionX=301, resolutionY=301, beta2=1000, omega=0.9)
 p.initVharmonic()
 # p.initVharmonic_quartic(1.2, 0.3)
 
 w = WaveFunction2D(p)
-w.initPsi_0()
-# w.initPsiGauss(x0=0, y0=0)
+# w.initPsi_0()
+w.initPsiGauss(x0=0, y0=0)
 # w.calcFFT()
 # w.calcL()
 
@@ -45,15 +45,16 @@ w.initPsi_0()
 # plt.colorbar()
 # plt.show()
 
-i = ImaginaryTimeStepper(w, p, epsilon_iteration_step_limit=10e-3, dtInit=0.05)
+i = ImaginaryTimeStepper(w, p, epsilon_iteration_step_limit=10e-4)
 
 # calculate frames
 # just do 20 frames as an example
 frames = [i.returnFrame()]
-for t in range(20):
+for t in range(50):
     print("Calculating Frame {}".format(t+1))
     i.calculate_time_step()
     frames.append(i.returnFrame())
+    print("Epsilon_t = {}".format(np.max(np.abs(frames[t] - frames[t+1]))))
 
 # display the frames
 display_psi_array(frames, 200)

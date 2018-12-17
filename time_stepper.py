@@ -2,6 +2,15 @@ import numpy as np
 from wave_function import ParameterObject, WaveFunction2D
 from numba import jit
 
+from timeit import default_timer
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = default_timer()
+        r = func(*args, **kwargs)
+        print("Function {} took {:.4} s".format(func.__name__, default_timer() - start))
+        return r
+    return wrapper
 
 class ImaginaryTimeStepper:
     def __init__(self, psi_0, parameterObject, epsilon_iteration_step_limit = 10e-5, dtInit = 0.005, maxTimeSteps = 500):
@@ -22,7 +31,7 @@ class ImaginaryTimeStepper:
         self.n = 0
 
     def returnFrame(self):
-        # returns |psi|**2 from the current time
+        # returns |psi|**2 from the current time frame
         return np.abs(self.psi_n.psi_array)**2
 
     def calcAlpha(self):
@@ -37,6 +46,9 @@ class ImaginaryTimeStepper:
     def calcNextPsi_m(self, G_m, dt, alpha):
         if type(G_m) != WaveFunction2D:
             raise TypeError("Parameter G_m has to be of type WaveFunction2D.")
+        
+        if not self.psi_n.psi_hat_contains_values or not G_m.psi_hat_contains_values:
+            raise ValueError("Something was not calculated...")
 
         a, b, c, d = self.paramObj.getBoundaries()
         M, N = self.paramObj.getResolution()
@@ -57,6 +69,8 @@ class ImaginaryTimeStepper:
         psi_m_hat = self.psi_n.psi_hat_array + dt * G_m.psi_hat_array
         psi_m_hat *= 2 / (2 + dt*(2*alpha + my_p**2 + lambda_q**2))
 
+        # the old version
+
         # psi_m_hat = np.zeros((M, N)) + (0+0j)
         # for p in range(-M//2, M//2, 1):
         #     for q in range(-N//2, N//2, 1):
@@ -68,6 +82,7 @@ class ImaginaryTimeStepper:
         psi_m_next.setPsiHat(psi_m_hat)
         return psi_m_hat
         
+    @jit
     def calculate_time_step(self):
         # set up epsilon
         epsilon_iteration_step = 1
@@ -95,6 +110,8 @@ class ImaginaryTimeStepper:
             psi_m.calcIFFT()
             psi_m.calcL()
 
+            #psi_m.plot3D()
+
             G_m.setPsi(self.psi_n.calcG_m(psi_m, alpha))
             G_m.calcFFT()
 
@@ -102,7 +119,7 @@ class ImaginaryTimeStepper:
             psi_max_old = psi_max
             psi_max = psi_m.psi_array
             epsilon_iteration_step = np.max(np.abs(psi_max_old - psi_max)) / self.dt
-            # print('\tEpsilon m = {}, iteration step = {}'.format(m, epsilon_iteration_step))
+            # print('\tm = {}, Epsilon iteration step = {}, norm = {}'.format(m, epsilon_iteration_step, psi_m.getNorm()))
 
         # end of iteration, psi_m (hopefully) converged to psi_n+1
         # renormalize psi_m for the next time step
