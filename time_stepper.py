@@ -70,6 +70,7 @@ class ImaginaryTimeStepper:
         psi_m_hat *= 2 / (2 + dt*(2*alpha + my_p**2 + lambda_q**2))
 
         # the old version
+        # does the same thing but way slower, CONFIRMED
 
         # psi_m_hat = np.zeros((M, N)) + (0+0j)
         # for p in range(-M//2, M//2, 1):
