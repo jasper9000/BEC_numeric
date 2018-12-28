@@ -31,13 +31,13 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 
 # initialize objects
-p = ParameterObject(resolutionX=201, resolutionY=201, beta2=100, omega=0.8)
-# p.initVharmonic()
-p.initVharmonic_quartic(1.2, 0.3)
+p = ParameterObject(resolutionX=600, resolutionY=600, beta2=1000, omega=0.8)
+p.initVharmonic(gamma_y=1)
+# p.initVharmonic_quartic(1.2, 0.3)
 
 w = WaveFunction2D(p)
 # w.initPsi_0()
-w.initPsiGauss(x0=0, y0=0)
+w.initPsiGauss(x0=1, y0=0)
 # w.calcFFT()
 # w.calcL()
 
@@ -45,16 +45,21 @@ w.initPsiGauss(x0=0, y0=0)
 # plt.colorbar()
 # plt.show()
 
-i = ImaginaryTimeStepper(w, p, epsilon_iteration_step_limit=10e-5)
+i = ImaginaryTimeStepper(w, p, epsilon_iteration_step_limit=0.001, dtInit=0.005, maxIterations=7000)
 
-# calculate frames
-# just do 20 frames as an example
-frames = [i.returnFrame()]
-for t in range(20):
-    print("Calculating Frame {}".format(t+1))
-    i.calculate_time_step()
-    frames.append(i.returnFrame())
-    print("Epsilon_t = {}".format(np.max(np.abs(frames[t] - frames[t+1]))))
+# # calculate frames
+# # just do 20 frames as an example
+# frames = [i.returnFrame()]
+# for t in range(20):
+#     print("Calculating Frame {}".format(t+1))
+#     i.calculate_time_step()
+#     frames.append(i.returnFrame())
+#     print("Epsilon_t = {}".format(np.max(np.abs(frames[t] - frames[t+1]))))
 
-# display the frames
-display_psi_array(frames, 200)
+# # display the frames
+# display_psi_array(frames, 200)
+
+
+# trying out BFSP
+frames = i.BFSP(20)
+display_psi_array(frames, 20)

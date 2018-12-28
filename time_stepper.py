@@ -13,7 +13,7 @@ def timer(func):
     return wrapper
 
 class ImaginaryTimeStepper:
-    def __init__(self, psi_0, parameterObject, epsilon_iteration_step_limit = 10e-5, dtInit = 0.005, maxTimeSteps = 500):
+    def __init__(self, psi_0, parameterObject, epsilon_iteration_step_limit = 10e-5, dtInit = 0.005, maxIterations = np.inf):
         if type(psi_0) != WaveFunction2D:
             raise TypeError("Parameter Psi_0 is not of type WaveFunction2D")
         self.psi_0 = psi_0
@@ -24,7 +24,7 @@ class ImaginaryTimeStepper:
 
         self.dt = dtInit # the initial value for the first time step
         self.epsilon_iteration_step_limit = epsilon_iteration_step_limit # value for the accepted error for the next time step
-        self.maxTimeSteps = maxTimeSteps # max number of allowed time steps
+        self.maxIterations = maxIterations # max number of allowed time steps
 
         # set up array for the nth time step, starting at 0
         self.psi_n = self.psi_0
@@ -129,3 +129,52 @@ class ImaginaryTimeStepper:
         self.psi_n = psi_m
         self.n += 1
 
+    def BFSP(self, n_frames):
+        # set up epsilon
+        epsilon_iteration_step = 1
+        psi_max_old = np.zeros(self.paramObj.getResolution())
+        psi_max = self.psi_0.psi_array
+        self.n = 0
+
+        G_m = WaveFunction2D(self.paramObj)
+
+        # set up initial values
+        
+        # psi_m = self.psi_n
+        # psi_m.calcFFT()
+        # psi_m.calcL()
+        
+        frames = []
+        frames.append(self.returnFrame())
+
+        # time step
+        while epsilon_iteration_step > self.epsilon_iteration_step_limit and self.n < self.maxIterations:
+            # calculate alpha for this time step
+            alpha = self.calcAlpha()
+
+            self.psi_n.calcFFT()
+            self.psi_n.calcL()
+            G_m.setPsi(self.psi_n.calcG_m(self.psi_n, alpha))
+            G_m.calcFFT()
+
+
+            # calculate the next psi_n
+            self.n += 1
+            self.psi_n.setPsiHat(self.calcNextPsi_m(G_m, self.dt, alpha))
+            self.psi_n.calcIFFT()
+            self.psi_n.norm()
+
+            # save the frame to display later
+            if self.n % n_frames == 0:
+                frames.append(self.returnFrame())
+
+            # calculate epsilon
+            psi_max_old = psi_max
+            psi_max = self.psi_n.psi_array
+            epsilon_iteration_step = np.max(np.abs(psi_max_old - psi_max)) / self.dt
+            print('\tn = {}, Epsilon (time) iteration step = {}'.format(self.n, epsilon_iteration_step))
+
+        # end of iteration, psi_m (hopefully) converged to psi_n+1
+        # renormalize psi_m for the next time step
+        print("Took {} (time) iteration steps.".format(self.n))
+        return frames

@@ -16,8 +16,8 @@ def timer(func):
 
 
 class ParameterObject:
-    def __init__(self, resolutionX = 256, resolutionY = 256,
-    x_low = -10, x_high = 10, y_low = -10, y_high = 10,
+    def __init__(self, resolutionX = 257, resolutionY = 257,
+    x_low = -16, x_high = 16, y_low = -16, y_high = 16,
     beta2 = 1000, omega = 0.8):
 
         self.resolutionX = resolutionX
@@ -45,11 +45,11 @@ class ParameterObject:
         self.omega = omega
 
     def initVharmonic(self, V0 = 1, gamma_y = 1):
-        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='xy')
+        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
         self.V = V0 * 0.5*(xx**2 + (gamma_y*yy)**2)
 
     def initVharmonic_quartic(self, alpha=1.3, kappa=0.3):
-        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='xy')
+        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
         self.V = (1-alpha)*(xx**2 + yy**2) + kappa * (xx**2+yy**2)**2
 
     def getResolution(self):
@@ -96,7 +96,7 @@ class WaveFunction2D:
 
     def initPsiGauss(self, sigma=1, x0=0, y0=0):
         # initializes Psi with a simple 2d gaussian
-        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='xy')
+        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
 
         self.psi_array = 1/(sigma**2) * np.exp(-0.5*((xx-x0)**2 + (yy-y0)**2)/sigma**2)
         self.norm()
@@ -106,9 +106,9 @@ class WaveFunction2D:
     def initPsi_0(self):
         # initial wave functions according to paper by bao and wang
         def norm(a):
-            return a / np.sqrt( np.sum(np.abs(a)**2) * self.paramObj.dx * self.paramObj.dy )
+            return a / np.sqrt( np.sum(np.abs(a[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
 
-        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='xy')
+        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
         phi_1 = (xx+1j*yy)/np.sqrt(np.pi) * np.exp(-0.5*(xx**2 + yy**2))
         phi_2 = 1/np.sqrt(np.pi) * np.exp(-0.5*(xx**2 + yy**2))
         phi_3 = (phi_1 + phi_2)/2
@@ -122,12 +122,12 @@ class WaveFunction2D:
 
     def norm(self):
         # normalizes Psi
-        self.psi_array /= np.sqrt( np.sum(np.abs(self.psi_array)**2) * self.paramObj.dx * self.paramObj.dy )
+        self.psi_array /= np.sqrt( np.sum(np.abs(self.psi_array[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
         return self.psi_array
 
     def getNorm(self):
         # normalizes Psi
-        return np.sqrt( np.sum(np.abs(self.psi_array)**2) * self.paramObj.dx * self.paramObj.dy )
+        return np.sqrt( np.sum(np.abs(self.psi_array[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
 
     def calcFFT(self):
         # calculates the FFT
@@ -135,6 +135,7 @@ class WaveFunction2D:
             raise ValueError("Psi does not contain values or Psi was not initialized!")
         else:
             self.psi_hat_array = np.fft.fft2(self.psi_array) /(np.prod(self.paramObj.getResolution()))
+            # self.psi_hat_array = np.fft.fftshift(self.psi_hat_array)
             self.psi_hat_contains_values = True
             return self.psi_hat_array
 
@@ -144,6 +145,7 @@ class WaveFunction2D:
             raise ValueError("Psi_hat does not contain values or Psi_hat was not initialized!")
         else:
             self.psi_array = np.fft.ifft2(self.psi_hat_array) * (np.prod(self.paramObj.getResolution()))
+            # self.psi_array = np.fft.ifftshift(self.psi_array)
             self.psi_contains_values = True
             return self.psi_array
 
@@ -211,7 +213,7 @@ class WaveFunction2D:
         # Dy_psi.psi_array /= np.prod( M*N )
 
         # adding Dx and Dy up to L
-        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='xy')
+        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
 
         self.L_psi_array = xx * Dy_psi.psi_array - yy * Dx_psi.psi_array
         self.L_psi_contains_values = True
