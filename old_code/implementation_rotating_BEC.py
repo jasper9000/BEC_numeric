@@ -87,7 +87,7 @@ wy = 15
 gamma_y = wy / wx
 
 # psi_0
-sigma = 0.3
+sigma = 1
 x0 = 0
 y0 = 0
 
@@ -105,7 +105,9 @@ xx, yy = np.meshgrid(x, y, sparse=False, indexing='xy')
 
 V = V0 * potential(xx, yy, gamma_y)
 psi_0 = gaussian(xx, yy, boundaries, sigma, x0, y0)
-
+psi_0_hat = fastDFT(psi_0)
+plt.imshow(np.abs(fastL(psi_0, psi_0_hat, boundaries)))
+plt.show()
 
 
 # start of program execution
