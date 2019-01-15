@@ -1,5 +1,7 @@
-import numpy as np
 from wave_function import ParameterObject, WaveFunction2D
+from data_manager import DataManager
+
+import numpy as np
 from numba import jit
 
 from timeit import default_timer
@@ -13,7 +15,7 @@ def timer(func):
     return wrapper
 
 class ImaginaryTimeStepper:
-    def __init__(self, psi_0, parameterObject, epsilon_iteration_step_limit = 10e-5, dtInit = 0.005, maxIterations = np.inf):
+    def __init__(self, psi_0, parameterObject, epsilon_iteration_step_limit = 10e-5, dtInit = 0.005, maxIterations = np.inf, filename="default.hdf5"):
         if type(psi_0) != WaveFunction2D:
             raise TypeError("Parameter Psi_0 is not of type WaveFunction2D")
         self.psi_0 = psi_0
@@ -30,9 +32,30 @@ class ImaginaryTimeStepper:
         self.psi_n = self.psi_0
         self.n = 0
 
+        # set up data manager
+        self.dataM = DataManager(filename)
+        self.dataM.openFile()
+        self.globalAttributes = {
+            'omega': self.paramObj.omega,
+            'beta': self.paramObj.beta2,
+            'dt': self.dt,
+            'resX': self.paramObj.resolutionX,
+            'resY': self.paramObj.resolutionY,
+            'epsilon_limit': self.epsilon_iteration_step_limit,
+            'maxIterations': self.maxIterations
+        }
+        self.dataM.setGlobalAttributes(self.globalAttributes)
+    
+    def __del__(self):
+        self.dataM.closeFile()
+
     def returnFrame(self):
         # returns |psi|**2 from the current time frame
         return np.abs(self.psi_n.psi_array)**2
+
+    def returnPsi(self):
+        # returns |psi|**2 from the current time frame
+        return self.psi_n.psi_array
 
     def calcAlpha(self):
         # calculate alpha
@@ -40,6 +63,7 @@ class ImaginaryTimeStepper:
         bmin = np.min(b_)
         bmax = np.max(b_)
         alpha = 0.5 * (bmax + bmin)
+        # print("Delta t < ", 2/(bmax+bmin))
         return alpha
 
     @jit
@@ -85,6 +109,9 @@ class ImaginaryTimeStepper:
         
     @jit
     def calculate_time_step(self):
+        # OLD
+        # calculates psi for t_n+1 in BESP
+        #####
         # set up epsilon
         epsilon_iteration_step = 1
         psi_max_old = np.zeros(self.paramObj.getResolution())
@@ -129,34 +156,27 @@ class ImaginaryTimeStepper:
         self.psi_n = psi_m
         self.n += 1
 
-    def BFSP(self, n_frames):
+    def BFSP(self, epsilon_threshold):
         # set up epsilon
         epsilon_iteration_step = 1
+        epsilon_sum = 0
         psi_max_old = np.zeros(self.paramObj.getResolution())
         psi_max = self.psi_0.psi_array
         self.n = 0
 
         G_m = WaveFunction2D(self.paramObj)
-
-        # set up initial values
         
-        # psi_m = self.psi_n
-        # psi_m.calcFFT()
-        # psi_m.calcL()
-        
-        frames = []
-        frames.append(self.returnFrame())
 
         # time step
         while epsilon_iteration_step > self.epsilon_iteration_step_limit and self.n < self.maxIterations:
             # calculate alpha for this time step
             alpha = self.calcAlpha()
 
+            # calculate psi_hat, L_psi and G_n
             self.psi_n.calcFFT()
             self.psi_n.calcL()
             G_m.setPsi(self.psi_n.calcG_m(self.psi_n, alpha))
             G_m.calcFFT()
-
 
             # calculate the next psi_n
             self.n += 1
@@ -164,17 +184,29 @@ class ImaginaryTimeStepper:
             self.psi_n.calcIFFT()
             self.psi_n.norm()
 
-            # save the frame to display later
-            if self.n % n_frames == 0:
-                frames.append(self.returnFrame())
-
             # calculate epsilon
             psi_max_old = psi_max
             psi_max = self.psi_n.psi_array
             epsilon_iteration_step = np.max(np.abs(psi_max_old - psi_max)) / self.dt
-            print('\tn = {}, Epsilon (time) iteration step = {}'.format(self.n, epsilon_iteration_step))
+            print('\tn = {}, Epsilon = {}, Epsilon sum = {}'.format(self.n, epsilon_iteration_step, epsilon_sum))
+            epsilon_sum += epsilon_iteration_step
 
+            # see if a frame has to be saved
+            if epsilon_sum > epsilon_threshold:
+                attributes = {
+                    'n': self.n,
+                    't': self.n*self.dt,
+                }
+                self.dataM.addDset(self.returnPsi(), attributes) ############ add attributes
+                epsilon_sum = 0
+                print("\tSaved a frame")
+        
         # end of iteration, psi_m (hopefully) converged to psi_n+1
+        # add the last frame to the data manager
+        attributes = {
+                    'n': self.n,
+                    't': self.n*self.dt,
+                }
+        self.dataM.addDset(self.returnFrame(), attributes) ############ add attributes
         # renormalize psi_m for the next time step
         print("Took {} (time) iteration steps.".format(self.n))
-        return frames

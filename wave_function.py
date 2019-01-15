@@ -228,7 +228,7 @@ class WaveFunction2D:
         if not self.psi_contains_values or not psi_m.psi_contains_values or not psi_m.L_psi_contains_values:
             raise ValueError("Something was not calculated...")
         
-        g = alpha * psi_m.psi_array + (0+0j)
+        g = alpha * psi_m.psi_array + 0j
         g -= self.paramObj.V * psi_m.psi_array 
         g -= self.paramObj.beta2 * np.abs(self.psi_array)**2 * psi_m.psi_array 
         g += self.paramObj.omega * psi_m.L_psi_array
