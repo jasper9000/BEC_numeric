@@ -3,9 +3,11 @@ from numba import jit
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from wave_function import ParameterObject, WaveFunction2D
-from time_stepper import ImaginaryTimeStepper
-from data_manager import DataManager
+from brain import ParameterObject, WaveFunction2D
+from brain import ImaginaryTimeStepper
+from brain import DataManager
+# from code.data_manager import DataManager
+# import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, DataManager
 
 def plot2D(psi):
     plt.imshow(np.abs(psi))
@@ -35,15 +37,15 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 
 #### initialize objects
-p = ParameterObject(resolutionX=400, resolutionY=400, beta2=100, omega=0.9)
+p = ParameterObject(resolutionX=500, resolutionY=500, beta2=1000, omega=0.7)
 p.initVharmonic(gamma_y=1)
 # p.initVharmonic_quartic(1.2, 0.3)
 
 psi0 = WaveFunction2D(p)
 # psi0.initPsi_0()
-psi0.initPsiGauss(sigma = 2.5, x0=0, y0=0)
+psi0.initPsiGauss(sigma=2.5, x0=0, y0=0)
 
-i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=10e-10, dtInit=0.005, maxIterations=200_000)
+i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=10e-8, dtInit=0.005, maxIterations=50_000, filename='saved_simulations/002.hdf5')
 
 
 # BFSP
@@ -56,7 +58,7 @@ i.BFSP(1)
 # with open("default_pickle.pickle", "wb") as f:
 #     pickle.dump(frames, f)
 
-i.dataM.displayFrames(50)
+i.dataM.displayFrames(30)
 
 # it's better to close the file manually...
 i.dataM.closeFile()
