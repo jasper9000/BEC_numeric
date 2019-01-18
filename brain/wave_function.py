@@ -16,7 +16,7 @@ def timer(func):
 
 
 class ParameterObject:
-    def __init__(self, resolutionX = 257, resolutionY = 257,
+    def __init__(self, resolutionX = 256, resolutionY = 256,
     x_low = -16, x_high = 16, y_low = -16, y_high = 16,
     beta2 = 1000, omega = 0.8):
 
@@ -93,6 +93,13 @@ class WaveFunction2D:
             raise ValueError("Shape {} of input array does not match the resolution {}.".format(array.shape, self.paramObj.getResolution()))
         self.psi_hat_array = array
         self.psi_hat_contains_values = True
+
+    def initThomasFermi(self, gamma_y):
+        # xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
+        my_g = 0.5*np.sqrt(4*self.paramObj.beta2*gamma_y)
+        self.psi_array = np.sqrt(np.maximum(0, my_g - self.paramObj.V)/self.paramObj.beta2)
+        self.norm()
+        self.psi_contains_values = True
 
     def initPsiGauss(self, sigma=1, x0=0, y0=0):
         # initializes Psi with a simple 2d gaussian

@@ -1,5 +1,5 @@
-from brain.wave_function import ParameterObject, WaveFunction2D
-from brain.data_manager import DataManager
+from .wave_function import ParameterObject, WaveFunction2D
+from .data_manager import DataManager
 
 import numpy as np
 from numba import jit
@@ -196,6 +196,7 @@ class ImaginaryTimeStepper:
                 attributes = {
                     'n': self.n,
                     't': self.n*self.dt,
+                    'epsilon': epsilon_iteration_step
                 }
                 self.dataM.addDset(self.returnPsi(), attributes)
                 epsilon_sum = 0
@@ -206,8 +207,9 @@ class ImaginaryTimeStepper:
         attributes = {
                     'n': self.n,
                     't': self.n*self.dt,
+                    'epsilon': epsilon_iteration_step
                 }
-        self.dataM.addDset(self.returnFrame(), attributes)
+        self.dataM.addDset(self.returnPsi(), attributes)
         self.dataM.file.attrs["n_frames"] = self.dataM.getNFrames()
-        # renormalize psi_m for the next time step
-        print("Took {} (time) iteration steps.".format(self.n))
+
+        print("Took {} (time) iteration steps. Saved {} frames.".format(self.n, self.dataM.incKey))

@@ -37,15 +37,22 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 
 #### initialize objects
-p = ParameterObject(resolutionX=500, resolutionY=500, beta2=1000, omega=0.7)
-p.initVharmonic(gamma_y=1)
-# p.initVharmonic_quartic(1.2, 0.3)
+gamma_y = 1
+
+p = ParameterObject(resolutionX=256, resolutionY=256, beta2=1000, omega=2.5)
+# p.initVharmonic(gamma_y=gamma_y)
+p.initVharmonic_quartic(1.2, 0.3)
+
+v = WaveFunction2D(p)
+v.setPsi(p.V)
+v.plot3D()
 
 psi0 = WaveFunction2D(p)
 # psi0.initPsi_0()
-psi0.initPsiGauss(sigma=2.5, x0=0, y0=0)
+# psi0.initPsiGauss(sigma=2.5, x0=0.5, y0=0)
+psi0.initThomasFermi(gamma_y=gamma_y)
 
-i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=10e-8, dtInit=0.005, maxIterations=50_000, filename='saved_simulations/002.hdf5')
+i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=10e-15, dtInit=0.005, maxIterations=50_000, filename='D:/bec_data/06.hdf5')
 
 
 # BFSP
@@ -58,7 +65,7 @@ i.BFSP(1)
 # with open("default_pickle.pickle", "wb") as f:
 #     pickle.dump(frames, f)
 
-i.dataM.displayFrames(30)
+# i.dataM.displayFrames(30)
 
 # it's better to close the file manually...
 i.dataM.closeFile()
