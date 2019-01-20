@@ -3,10 +3,16 @@ from numba import jit
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from wave_function import ParameterObject, WaveFunction2D
-from time_stepper import ImaginaryTimeStepper
+from brain import ParameterObject, WaveFunction2D
+from brain import ImaginaryTimeStepper
+from brain import DataManager
+# from code.data_manager import DataManager
+# import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, DataManager
 
-
+def plot2D(psi):
+    plt.imshow(np.abs(psi))
+    plt.colorbar()
+    plt.show()
 
 def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
     # a simple function that displays arrays of 2D image data as a animation
@@ -30,22 +36,43 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
     return anim
 
 
-# initialize objects
-p = ParameterObject(resolutionX=600, resolutionY=600, beta2=1000, omega=0.8)
-p.initVharmonic(gamma_y=1)
-# p.initVharmonic_quartic(1.2, 0.3)
+#### initialize objects
+gamma_y = 1
 
-w = WaveFunction2D(p)
-# w.initPsi_0()
-w.initPsiGauss(x0=1, y0=0)
-# w.calcFFT()
-# w.calcL()
+p = ParameterObject(resolutionX=256, resolutionY=256, beta2=1000, omega=2.5)
+# p.initVharmonic(gamma_y=gamma_y)
+p.initVharmonic_quartic(1.2, 0.3)
 
-# plt.imshow(np.abs(w.L_psi_array))
-# plt.colorbar()
-# plt.show()
+v = WaveFunction2D(p)
+v.setPsi(p.V)
+v.plot3D()
 
-i = ImaginaryTimeStepper(w, p, epsilon_iteration_step_limit=0.001, dtInit=0.005, maxIterations=7000)
+psi0 = WaveFunction2D(p)
+# psi0.initPsi_0()
+# psi0.initPsiGauss(sigma=2.5, x0=0.5, y0=0)
+psi0.initThomasFermi(gamma_y=gamma_y)
+
+i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=10e-15, dtInit=0.005, maxIterations=50_000, filename='D:/bec_data/06.hdf5')
+
+
+# BFSP
+i.BFSP(1)
+
+#### with this the file size is tested
+#### hdf5 usually wins, but only slightly
+# import pickle
+# frames = i.dataM.listFrames()
+# with open("default_pickle.pickle", "wb") as f:
+#     pickle.dump(frames, f)
+
+# i.dataM.displayFrames(30)
+
+# it's better to close the file manually...
+i.dataM.closeFile()
+
+############################################
+# THE OLD METHOD, BESP
+# DOES NOT WORK VERY WELL...
 
 # # calculate frames
 # # just do 20 frames as an example
@@ -58,8 +85,4 @@ i = ImaginaryTimeStepper(w, p, epsilon_iteration_step_limit=0.001, dtInit=0.005,
 
 # # display the frames
 # display_psi_array(frames, 200)
-
-
-# trying out BFSP
-frames = i.BFSP(20)
-display_psi_array(frames, 20)
+############################################
