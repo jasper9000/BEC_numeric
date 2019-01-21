@@ -5,7 +5,8 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from .wave_function import WaveFunction2D, ParameterObject
+from .wave_function import WaveFunction2D
+from parameter_object import ParameterObject
 
 class DataManager:
     def __init__(self, filename="default.hdf5", compression="gzip"):

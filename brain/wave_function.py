@@ -4,73 +4,11 @@ from numba import jit
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
+from .parameter_object import *
+
 # for the calculation of the energy
 from scipy.integrate import simps
 
-from timeit import default_timer
-
-def timer(func):
-    def wrapper(*args, **kwargs):
-        start = default_timer()
-        r = func(*args, **kwargs)
-        print("Function {} took {:.4} s".format(func.__name__, default_timer() - start))
-        return r
-    return wrapper
-
-
-class ParameterObject:
-    def __init__(self, resolutionX = 256, resolutionY = 256,
-    x_low = -16, x_high = 16, y_low = -16, y_high = 16,
-    beta2 = 1000, omega = 0.8):
-
-        self.resolutionX = resolutionX
-        self.resolutionY = resolutionY
-
-        # set the bounddaries of the image box
-        self.x_low = x_low
-        self.x_high = x_high
-        self.y_low = y_low
-        self.y_high = y_high
-
-        # calculate the spatial step and make a coordinate array
-        self.dx = (self.x_high - self.x_low)/self.resolutionX
-        self.x = np.linspace(self.x_low, self.x_high, self.resolutionX)
-
-        self.dy = (self.y_high - self.y_low)/self.resolutionY
-        self.y = np.linspace(self.y_low, self.y_high, self.resolutionY)
-
-        # initialize the potential array V
-
-        self.V = np.zeros((self.resolutionX, self.resolutionY))
-
-        # constants for the BEC itself
-        self.beta2 = beta2
-        self.omega = omega
-
-    def initVharmonic(self, V0 = 1, gamma_y = 1):
-        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
-        self.V = V0 * 0.5*(xx**2 + (gamma_y*yy)**2)
-
-    def initVharmonic_quartic(self, alpha=1.3, kappa=0.3):
-        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
-        self.V = (1-alpha)*(xx**2 + yy**2) + kappa * (xx**2+yy**2)**2
-    
-    def initVperiodic(self, V0 = 1, kappa = np.pi):
-        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
-        Vopt = V0*(np.sin(kappa*xx)**2 + np.sin(kappa*yy)**2)
-        self.V = 0.5 * (xx**2 + yy**2 + Vopt)
-
-    def getResolution(self):
-        # returns a 2 element tuple with the X- and Y- resolution
-        return (self.resolutionX, self.resolutionY)
-
-    def res(self):
-        # alias for self.getResolution()  ...  it's just shorter
-        return self.getResolution()
-
-    def getBoundaries(self):
-        # returns a 4 tuple with the x- and y-boundaries
-        return (self.x_low, self.x_high, self.y_low, self.y_high)
 
 class WaveFunction2D:
     def __init__(self, parameterObject):
@@ -109,6 +47,16 @@ class WaveFunction2D:
         self.psi_hat_array = array
         self.psi_hat_contains_values = True
 
+    def initPsi_0(self):
+        if self.paramObj.choice_psi0 == Psi0Choice.THOMAS_FERMI:
+            self.initThomasFermi(self.paramObj.choice_psi0_parameters['gamma_y'])
+        elif self.paramObj.choice_psi0 == Psi0Choice.GAUSS:
+            self.initPsiGauss(self.paramObj.choice_psi0_parameters['sigma'],
+            self.paramObj.choice_psi0_parameters['x0'],
+            self.paramObj.choice_psi0_parameters['y0'])
+        else:
+            print("[ERROR] Psi0 choice not recognized.")
+
     def initThomasFermi(self, gamma_y):
         # xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
         my_g = 0.5*np.sqrt(4*self.paramObj.beta2*gamma_y)
@@ -132,23 +80,6 @@ class WaveFunction2D:
         self.psi_array = 1/(sigma**2) * np.exp(-0.5*((xx-x0)**2 + (yy-y0)**2)/sigma**2)
         self.psi_array += 1/(sigma**2) * np.exp(-0.5*((xx+x0)**2 + (yy+y0)**2)/sigma**2)
         self.norm()
-        self.psi_contains_values = True
-        return self.psi_array
-
-    def initPsi_0(self):
-        # initial wave functions according to paper by bao and wang
-        def norm(a):
-            return a / np.sqrt( np.sum(np.abs(a[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
-
-        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
-        phi_1 = (xx+1j*yy)/np.sqrt(np.pi) * np.exp(-0.5*(xx**2 + yy**2))
-        phi_2 = 1/np.sqrt(np.pi) * np.exp(-0.5*(xx**2 + yy**2))
-        phi_3 = (phi_1 + phi_2)/2
-        phi_3 = norm(phi_3)
-        phi_4 = (1-self.paramObj.omega)*phi_2 + self.paramObj.omega * phi_1
-        phi_4 = norm(phi_4)
-
-        self.psi_array = phi_4
         self.psi_contains_values = True
         return self.psi_array
 

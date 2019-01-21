@@ -6,7 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 import numpy as np
-from wave_function import ParameterObject
+from parameter_object import *
 
 class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -14,9 +14,7 @@ class MainApplication(tk.Frame):
         self.parent = parent
 
         # set up standard parameters
-        self.paramObj = ParameterObject(resolutionX=256, resolutionY=256,
-        x_low=-16, x_high=16, y_low=-16, y_high=16,
-        beta2=1000, omega=0.9)
+        self.paramObj = ParameterObject()
 
         self.padx = 5
         self.pady = 5
@@ -45,16 +43,20 @@ class MainApplication(tk.Frame):
     def init_top_left(self):
         # grid spacing parameters
         x_low_label = tk.Label(self.top_left, text='x low')
-        self.x_low_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT)
+        self.x_low_sv = tk.StringVar(value=self.paramObj.x_low)
+        self.x_low_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT, textvariable=self.x_low_sv)
 
         x_high_label = tk.Label(self.top_left, text='x high')
-        self.x_high_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT)
+        self.x_high_sv = tk.StringVar(value=self.paramObj.x_high)
+        self.x_high_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT, textvariable=self.x_high_sv)
 
         y_low_label = tk.Label(self.top_left, text='y low')
-        self.y_low_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT)
+        self.y_low_sv = tk.StringVar(value=self.paramObj.y_low)
+        self.y_low_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT, textvariable=self.y_low_sv)
 
         y_high_label = tk.Label(self.top_left, text='y high')
-        self.y_high_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT)
+        self.y_high_sv = tk.StringVar(value=self.paramObj.y_high)
+        self.y_high_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT,textvariable=self.y_high_sv)
 
         # self.top_left.grid_columnconfigure(2, minsize=80)
 
@@ -76,10 +78,12 @@ class MainApplication(tk.Frame):
         self.resolution_frame.grid(row=2, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         res_x_label = tk.Label(self.resolution_frame, text='Auflösung x-Richtung', bg=color_red)
-        self.res_x_entry = tk.Entry(self.resolution_frame, width=10, justify=tk.RIGHT)
+        self.res_x_sv = tk.StringVar(value=self.paramObj.resolutionX)
+        self.res_x_entry = tk.Entry(self.resolution_frame, width=10, justify=tk.RIGHT, textvariable=self.res_x_sv)
 
         res_y_label = tk.Label(self.resolution_frame, text='Auflösung y-Richtung', bg=color_red)
-        self.res_y_entry = tk.Entry(self.resolution_frame, width=10, justify=tk.RIGHT)
+        self.res_y_sv = tk.StringVar(value=self.paramObj.resolutionY)
+        self.res_y_entry = tk.Entry(self.resolution_frame, width=10, justify=tk.RIGHT, textvariable=self.res_y_sv)
 
         res_x_label.grid(row=0, column=0)
         self.res_x_entry.grid(row=0, column=1)
@@ -90,10 +94,12 @@ class MainApplication(tk.Frame):
     def init_top_right(self):
         # omega and beta
         omega_label = tk.Label(self.top_right, text='Omega')
-        self.omega_entry = tk.Entry(self.top_right, width=10, justify=tk.RIGHT)
+        self.omega_sv = tk.StringVar(value=self.paramObj.omega)
+        self.omega_entry = tk.Entry(self.top_right, width=10, justify=tk.RIGHT, textvariable=self.omega_sv)
 
         beta_label = tk.Label(self.top_right, text='Beta')
-        self.beta_entry = tk.Entry(self.top_right, width=10, justify=tk.RIGHT)
+        self.beta_sv = tk.StringVar(value=self.paramObj.beta2)
+        self.beta_entry = tk.Entry(self.top_right, width=10, justify=tk.RIGHT, textvariable=self.beta_sv)
 
         omega_label.grid(row=0, column=0)
         self.omega_entry.grid(row=0, column=1)
@@ -105,12 +111,11 @@ class MainApplication(tk.Frame):
         self.psi0_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
         self.psi0_frame.grid(row=1, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
-        psi0_option_list = ('Thomas-Fermi-Approximation', 'Gauß')
-        self.psi0_option = tk.StringVar()
-        self.psi0_option.set(psi0_option_list[0])
+        self.psi0_option_list = ('Thomas-Fermi-Approximation', 'Gauß')
+        self.psi0_option_sv = tk.StringVar(value=self.psi0_option_list[0])
 
         psi0_label = tk.Label(self.psi0_frame, text='Start-Wellenfunktion')
-        self.psi0_optionsmenu = tk.OptionMenu(self.psi0_frame, self.psi0_option, *psi0_option_list)
+        self.psi0_optionsmenu = tk.OptionMenu(self.psi0_frame, self.psi0_option_sv, *self.psi0_option_list)
 
         psi0_label.grid(row=0, column=0)
         self.psi0_optionsmenu.grid(row=0, column=1)
@@ -119,28 +124,32 @@ class MainApplication(tk.Frame):
         self.V_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
         self.V_frame.grid(row=2, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
-        V_option_list = ('Harmonisch', 'Harmonisch + Quartisch', 'Harmonisch + Optisch')
-        self.V_option = tk.StringVar()
-        self.V_option.set(V_option_list[0])
+        self.V_option_list = ('Harmonisch', 'Harmonisch + Quartisch', 'Harmonisch + Optisch')
+        self.V_option_sv = tk.StringVar(value=self.V_option_list[0])
 
         V_label = tk.Label(self.V_frame, text='Potential V')
-        self.V_optionsmenu = tk.OptionMenu(self.V_frame, self.V_option, *V_option_list)
+        self.V_optionsmenu = tk.OptionMenu(self.V_frame, self.V_option_sv, *self.V_option_list)
 
         V_label.grid(row=0, column=0)
         self.V_optionsmenu.grid(row=0, column=1)
 
+
     def init_bottom_left(self):
         dt_label = tk.Label(self.bottom_left, text='Delta t')
-        self.dt_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT)
+        self.dt_sv = tk.StringVar(value=self.paramObj.dt)
+        self.dt_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.dt_sv)
 
         epsilon_label = tk.Label(self.bottom_left, text='Epsilon')
-        self.epsilon_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT)
+        self.epsilon_sv = tk.StringVar(value=self.paramObj.epsilon_limit)
+        self.epsilon_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.epsilon_sv)
 
         maxIter_label = tk.Label(self.bottom_left, text='maximale Iterationen')
-        self.maxIter_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT)
+        self.maxIter_sv = tk.StringVar(value=self.paramObj.maxIterations)
+        self.maxIter_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.maxIter_sv)
 
         filename_label = tk.Label(self.bottom_left, text='Dateiname')
-        self.filename_entry = tk.Entry(self.bottom_left, width=30, justify=tk.RIGHT)
+        self.filename_sv = tk.StringVar(value=self.paramObj.filename)
+        self.filename_entry = tk.Entry(self.bottom_left, width=30, justify=tk.RIGHT, textvariable=self.filename_sv)
 
         dt_label.grid(row=0, column=0)
         self.dt_entry.grid(row=0, column=1)
@@ -159,30 +168,30 @@ class MainApplication(tk.Frame):
         ax = fig.add_subplot(111)
         x = np.linspace(-16, 16, 100)
         xx, yy = np.meshgrid(x, x)
-        im = ax.imshow(np.exp(np.sin(xx+yy)), cmap='jet')
-        fig.colorbar(im)
+        self.im = ax.imshow(np.exp(np.sin(xx+yy)), cmap='jet')
+        self.cb = fig.colorbar(self.im)
 
-        canvas = FigureCanvasTkAgg(fig, master=self.bottom_right)  # A tk.DrawingArea.
-        canvas.draw()
-        canvas.get_tk_widget().grid()
+        self.V_canvas = FigureCanvasTkAgg(fig, master=self.bottom_right)  # A tk.DrawingArea.
+        self.V_canvas.draw()
+        self.V_canvas.get_tk_widget().grid(row=0, column=0)
 
+        ## refresh button
+        self.V_refresh_button = tk.Button(self.bottom_right, command=self.updatePlot, text='Refresh')
+        self.V_refresh_button.grid(row=0, column=1)
 
-    def init_window(self):
-        tk.Label(self.parent, text="Beta").grid(row=0, padx=self.padx, pady=self.pady)
-        tk.Label(self.parent, text="Omega").grid(row=1, padx=self.padx, pady=self.pady)
+    def updatePlot(self):
+        self.im.set_data(np.random.random((100, 100)))
+        self.V_canvas.draw()
 
-        self.e1 = tk.Entry(self.parent)
-        self.e2 = tk.Entry(self.parent)
-
-        self.e1.grid(row=0, column=1, padx=self.padx, pady=self.pady)
-        self.e2.grid(row=1, column=1, padx=self.padx, pady=self.pady)
-
-    def read_values(self):
-        pass
-
+    def checkFloat(self, value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
        
 if __name__ == "__main__":
     print("main")
     root = tk.Tk()
-    MainApplication(root)#.pack(side="top", fill="both", expand=True)
+    MainApplication(root)
     root.mainloop()

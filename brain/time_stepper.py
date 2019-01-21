@@ -1,4 +1,5 @@
-from .wave_function import ParameterObject, WaveFunction2D
+from .wave_function import WaveFunction2D
+from .parameter_object import ParameterObject
 from .data_manager import DataManager
 
 import numpy as np

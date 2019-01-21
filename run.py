@@ -3,9 +3,7 @@ from numba import jit
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from brain import ParameterObject, WaveFunction2D
-from brain import ImaginaryTimeStepper
-from brain import DataManager
+from brain import *
 
 
 def plot2D(psi):
@@ -47,8 +45,8 @@ p.initVharmonic(gamma_y=gamma_y)
 psi0 = WaveFunction2D(p)
 # psi0.initPsi_0()
 # psi0.initPsiGauss(sigma=2.5, x0=1.5, y0=0)
-psi0.initPsiGauss_double(sigma=1, x0=5, y0=0)
-# psi0.initThomasFermi(gamma_y=gamma_y)
+# psi0.initPsiGauss_double(sigma=1, x0=5, y0=0)
+psi0.initThomasFermi(gamma_y=gamma_y)
 
 psi0.plot3D()
 
