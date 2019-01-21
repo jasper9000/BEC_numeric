@@ -125,6 +125,16 @@ class WaveFunction2D:
         self.psi_contains_values = True
         return self.psi_array
 
+    def initPsiGauss_double(self, sigma=1, x0=2, y0=0):
+        # initializes Psi with a simple 2d gaussian
+        xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
+
+        self.psi_array = 1/(sigma**2) * np.exp(-0.5*((xx-x0)**2 + (yy-y0)**2)/sigma**2)
+        self.psi_array += 1/(sigma**2) * np.exp(-0.5*((xx+x0)**2 + (yy+y0)**2)/sigma**2)
+        self.norm()
+        self.psi_contains_values = True
+        return self.psi_array
+
     def initPsi_0(self):
         # initial wave functions according to paper by bao and wang
         def norm(a):

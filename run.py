@@ -37,22 +37,25 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 #### initialize objects
 gamma_y = 1
-resolution = 512
+resolution = 256
 
-p = ParameterObject(resolutionX=resolution, resolutionY=resolution, beta2=10000, omega=3)
-# p.initVharmonic(gamma_y=gamma_y)
-p.initVharmonic_quartic(1.2, 0.3)
+p = ParameterObject(resolutionX=resolution, resolutionY=resolution, beta2=1000, omega=0.9)
+p.initVharmonic(gamma_y=gamma_y)
+# p.initVharmonic_quartic(1.2, 0.3)
 # p.initVperiodic(V0=20, kappa=np.pi/4)
 
 psi0 = WaveFunction2D(p)
 # psi0.initPsi_0()
 # psi0.initPsiGauss(sigma=2.5, x0=1.5, y0=0)
-psi0.initThomasFermi(gamma_y=gamma_y)
+psi0.initPsiGauss_double(sigma=1, x0=5, y0=0)
+# psi0.initThomasFermi(gamma_y=gamma_y)
 
-i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=1e-15, dtInit=2e-5, maxIterations=250_000, filename='D:/bec_data/09.hdf5')
+psi0.plot3D()
+
+i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=1e-15, dtInit=0.005, maxIterations=50_000, filename='D:/bec_data/10.hdf5')
 
 # BFSP
-i.BFSP(300)
+i.BFSP(1)
 
 # i.dataM.displayFrames(30)
 

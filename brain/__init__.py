@@ -1,6 +1,7 @@
-from .wave_function import ParameterObject, WaveFunction2D
-from .data_manager import DataManager
-from .time_stepper import ImaginaryTimeStepper
+from .wave_function import *
+from .data_manager import *
+from .time_stepper import *
+from .gui import *
 
 # print("inside brain/__init__.py")
 print("[INFO] Loading the brain.")
