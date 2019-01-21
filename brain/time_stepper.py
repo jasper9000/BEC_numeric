@@ -41,6 +41,10 @@ class ImaginaryTimeStepper:
             'dt': self.dt,
             'resX': self.paramObj.resolutionX,
             'resY': self.paramObj.resolutionY,
+            'x_low' : self.paramObj.x_low,
+            'x_high' : self.paramObj.x_high,
+            'y_low' : self.paramObj.y_low,
+            'y_high' : self.paramObj.y_high,
             'epsilon_limit': self.epsilon_iteration_step_limit,
             'maxIterations': self.maxIterations
         }
@@ -63,7 +67,8 @@ class ImaginaryTimeStepper:
         bmin = np.min(b_)
         bmax = np.max(b_)
         alpha = 0.5 * (bmax + bmin)
-        # print("Delta t < ", 2/(bmax+bmin))
+        if self.dt > 2/(bmax+bmin):
+            print("[WARNING] Delta t = {} is larger than time step constraint {}!".format(self.dt, 2/(bmax+bmin)))
         return alpha
 
     @jit

@@ -5,6 +5,8 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+from .wave_function import WaveFunction2D, ParameterObject
+
 class DataManager:
     def __init__(self, filename="default.hdf5", compression="gzip"):
         self.filename = filename
@@ -64,6 +66,9 @@ class DataManager:
     
     def numberDsets(self):
         return self.incKey+1
+
+    def makeKey(self, key):
+        return "{:05d}".format(key)
     
     def getNFrames(self):
         return len(self.file.keys())
@@ -130,6 +135,55 @@ class DataManager:
         plt.text(0.05, 0.9, text, color="w")
         plt.show()
 
+    def calcObservables(self):
+        file_attr = self.file.attrs
+        p = ParameterObject(file_attr['resX'], file_attr['resY'],
+        file_attr['x_low'], file_attr['x_high'], file_attr['y_low'], file_attr['y_high'],
+        file_attr['beta'], file_attr['omega'])
+
+        w = WaveFunction2D(p)
+        for i in range(self.getNFrames()):
+            array, _ = self.getDset(self.makeKey(i))
+            w.setPsi(array)
+            w.calcFFT()
+            w.calcL()
+            w.calcNabla()
+
+            self.file[self.makeKey(i)].attrs['E'] = w.calcEnergy()
+            self.file[self.makeKey(i)].attrs['L'] = w.calcL_expectation()
+            self.file[self.makeKey(i)].attrs['Nabla'] = w.calcNabla_expectation()
+
+    def getObservables(self):
+        E, L, Nabla, t = [], [], [], []
+        for i in range(self.getNFrames()):
+            _, attributes = self.getDset(self.makeKey(i))
+            t.append(attributes['t'])
+            E.append(attributes['E'])
+            L.append(attributes['L'])
+            Nabla.append(attributes['Nabla'])
+        return E, L, Nabla, t
+
+    def plotObservables(self, calc=True):
+        if calc:
+            self.calcObservables()
+        L = []
+        E = []
+        Nabla = []
+        t = []
+        for i in range(self.getNFrames()):
+            _, attr = self.getDset(self.makeKey(i))
+            t.append(attr['t'])
+
+            Nabla.append(attr['Nabla'])
+            E.append(attr['E'])
+            L.append(attr['L'])
+        
+        plt.plot(t, E, label='E')
+        plt.plot(t, L, label='L')
+        plt.plot(t, Nabla, label='Nabla')
+        plt.legend()
+        plt.show()
+
 
     def displayFrames(self, playback_speed=20, dynamic_colorbar=True, figsize=(10, 8)):
         fig, ax = plt.subplots(figsize=figsize)
@@ -169,3 +223,60 @@ class DataManager:
         plt.show()
         return anim
 
+    def displayFull(self, playback_speed=20, dynamic_colorbar=True, figsize=(10, 6)):
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+        shape = (self.file.attrs['resX'], self.file.attrs['resY'])
+        data = np.random.rand(*shape)
+        im = ax1.imshow(data, cmap='jet', animated=True, vmin=0, vmax=1)
+        fig.colorbar(im, ax=ax1)
+        # tx = ax.set_title('Title', animated=True)
+        tx = ax1.text(0.05, 0.9, '', transform=ax1.transAxes, color="w")
+        # tx = ax.text(.5, 1.005, 'test', transform = ax.transAxes)
+
+        E, L, Nabla, t = self.getObservables()
+
+        pl1, = ax2.plot(t, E, label="E")
+        pl2, = ax2.plot(t, L, label="L")
+        pl3, = ax2.plot(t, Nabla, label="Nabla")
+
+        y_min = np.min((np.min(E), np.min(L), np.min(Nabla)))
+        y_max = np.max((np.max(E), np.max(L), np.max(Nabla)))
+
+        _, attributes_last_frame = self.getDset(self.getLastKey())
+        ax2.set_xlim(0, attributes_last_frame['t'])
+        ax2.set_ylim(y_min-10, y_max+10)
+        ax2.legend()
+
+        fps = 1000//playback_speed
+        lastKey = int(self.getLastKey())
+        endingFrameDelay = 3
+
+        def update(i):
+            if i > lastKey:
+                key = "{:05d}".format(lastKey)
+            else:
+                key = "{:05d}".format(i)
+            psi_array, attributes = self.getDset(key)
+
+            tx.set_text("Frame {} of {}\nn = {}\nt = {:2.3f}".format(i, lastKey+endingFrameDelay*fps, attributes['n'],  attributes['t']))
+            im.set_data(np.abs(psi_array)**2)
+            
+            if dynamic_colorbar:
+                vmin = np.min(np.abs(psi_array)**2)
+                vmax = np.max(np.abs(psi_array)**2)
+                im.set_clim(vmin,vmax)
+
+            # observables#
+            if i > lastKey:
+                a = lastKey
+            else:
+                a = i
+            pl1.set_data(t[:a], E[:a])
+            pl2.set_data(t[:a], L[:a])
+            pl3.set_data(t[:a], Nabla[:a])
+            
+            return tx, im, pl1, pl2, pl3
+
+        anim = animation.FuncAnimation(fig, update, blit=True, frames=lastKey+endingFrameDelay*fps, interval=playback_speed)
+        plt.show()
+        return anim

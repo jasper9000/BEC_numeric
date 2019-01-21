@@ -4,6 +4,9 @@ from numba import jit
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
+# for the calculation of the energy
+from scipy.integrate import simps
+
 from timeit import default_timer
 
 def timer(func):
@@ -51,6 +54,11 @@ class ParameterObject:
     def initVharmonic_quartic(self, alpha=1.3, kappa=0.3):
         xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
         self.V = (1-alpha)*(xx**2 + yy**2) + kappa * (xx**2+yy**2)**2
+    
+    def initVperiodic(self, V0 = 1, kappa = np.pi):
+        xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
+        Vopt = V0*(np.sin(kappa*xx)**2 + np.sin(kappa*yy)**2)
+        self.V = 0.5 * (xx**2 + yy**2 + Vopt)
 
     def getResolution(self):
         # returns a 2 element tuple with the X- and Y- resolution
@@ -67,7 +75,7 @@ class ParameterObject:
 class WaveFunction2D:
     def __init__(self, parameterObject):
         if type(parameterObject) != ParameterObject:
-            raise TypeError("Argument parameterObject has to be of the type ParameterObject. Given is type {}.".format(type(parameterObject)))
+            raise TypeError("Argument parameterObject has to be of the type {}. Given is type {}.".format(type(ParameterObject), type(parameterObject)))
         
         self.paramObj = parameterObject
 
@@ -79,6 +87,13 @@ class WaveFunction2D:
 
         self.L_psi_contains_values = False
         self.L_psi_array = np.zeros(self.paramObj.getResolution()) + (0+0j)
+
+        self.nabla_psi_contains_values = False
+        self.nabla_psi_array = np.zeros(self.paramObj.getResolution()) + (0+0j)
+
+        self.E = None
+        self.L_expectation = None
+        self.Nabla_expectation = None
     
     def setPsi(self, array):
         # a method to manually set psi to a given 2d array
@@ -155,6 +170,59 @@ class WaveFunction2D:
             # self.psi_array = np.fft.ifftshift(self.psi_array)
             self.psi_contains_values = True
             return self.psi_array
+
+    def calcEnergy(self):
+        x = self.paramObj.x
+        y = self.paramObj.y
+
+        dE = 0.5*np.abs(self.nabla_psi_array)**2 
+        dE += self.paramObj.V * np.abs(self.psi_array)**2
+        dE += self.paramObj.beta2/2 * np.abs(self.psi_array)**4
+        dE -= self.paramObj.omega * (np.conjugate(self.psi_array)*self.L_psi_array).real
+
+        self.E = simps(simps(dE, y), x)
+        return self.E
+
+    def calcL_expectation(self):
+        x = self.paramObj.x
+        y = self.paramObj.y
+
+        dL = np.conjugate(self.psi_array)*self.L_psi_array
+
+        self.L_expectation = simps(simps(dL, y), x)
+        return self.L_expectation
+
+    def calcNabla_expectation(self):
+        x = self.paramObj.x
+        y = self.paramObj.y
+
+        dN = 0.5*np.abs(self.nabla_psi_array)**2
+
+        self.Nabla_expectation = simps(simps(dN, y), x)
+        return self.Nabla_expectation
+
+    def calcNabla(self):
+        a, b, c, d = self.paramObj.getBoundaries()
+        M, N = self.paramObj.getResolution()
+        
+        p = np.arange(-M//2, M//2, 1)
+        q = np.arange(-N//2, N//2, 1)
+        pp, qq = np.meshgrid(p, q, indexing='ij')
+
+        lambda_q = 2*qq*np.pi/(d-c)
+        my_p = 2*pp*np.pi/(b-a)
+
+        my_p = np.fft.fftshift(my_p)
+        lambda_q = np.fft.fftshift(lambda_q)
+
+
+        n_psi = WaveFunction2D(self.paramObj)
+        n_psi.setPsiHat((my_p + lambda_q) * self.psi_hat_array)
+        n_psi.calcIFFT()
+
+        self.nabla_psi_array = n_psi.psi_array
+        self.nabla_psi_contains_values = True
+        return self.nabla_psi_array
 
     #@timer
     def calcL(self):

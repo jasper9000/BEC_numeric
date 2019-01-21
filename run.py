@@ -6,8 +6,7 @@ import matplotlib.animation as animation
 from brain import ParameterObject, WaveFunction2D
 from brain import ImaginaryTimeStepper
 from brain import DataManager
-# from code.data_manager import DataManager
-# import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, DataManager
+
 
 def plot2D(psi):
     plt.imshow(np.abs(psi))
@@ -38,32 +37,22 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 #### initialize objects
 gamma_y = 1
+resolution = 512
 
-p = ParameterObject(resolutionX=256, resolutionY=256, beta2=1000, omega=2.5)
+p = ParameterObject(resolutionX=resolution, resolutionY=resolution, beta2=10000, omega=3)
 # p.initVharmonic(gamma_y=gamma_y)
 p.initVharmonic_quartic(1.2, 0.3)
-
-v = WaveFunction2D(p)
-v.setPsi(p.V)
-v.plot3D()
+# p.initVperiodic(V0=20, kappa=np.pi/4)
 
 psi0 = WaveFunction2D(p)
 # psi0.initPsi_0()
-# psi0.initPsiGauss(sigma=2.5, x0=0.5, y0=0)
+# psi0.initPsiGauss(sigma=2.5, x0=1.5, y0=0)
 psi0.initThomasFermi(gamma_y=gamma_y)
 
-i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=10e-15, dtInit=0.005, maxIterations=50_000, filename='D:/bec_data/06.hdf5')
-
+i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=1e-15, dtInit=2e-5, maxIterations=250_000, filename='D:/bec_data/09.hdf5')
 
 # BFSP
-i.BFSP(1)
-
-#### with this the file size is tested
-#### hdf5 usually wins, but only slightly
-# import pickle
-# frames = i.dataM.listFrames()
-# with open("default_pickle.pickle", "wb") as f:
-#     pickle.dump(frames, f)
+i.BFSP(300)
 
 # i.dataM.displayFrames(30)
 
