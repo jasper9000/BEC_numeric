@@ -23,7 +23,6 @@ class ImaginaryTimeStepper:
         if type(parameterObject) != ParameterObject:
             raise TypeError("Parameter parameterObject is not of type ParameterObject")
         self.paramObj = parameterObject
-
         self.dt = dtInit # the initial value for the first time step
         self.epsilon_iteration_step_limit = epsilon_iteration_step_limit # value for the accepted error for the next time step
         self.maxIterations = maxIterations # max number of allowed time steps

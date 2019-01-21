@@ -18,7 +18,7 @@ def timer(func):
 class ParameterObject:
     def __init__(self, resolutionX = 256, resolutionY = 256,
     x_low = -16, x_high = 16, y_low = -16, y_high = 16,
-    beta2 = 1000, omega = 0.8):
+    beta2 = 1000, omega = 0.8, slow = False):
 
         self.resolutionX = resolutionX
         self.resolutionY = resolutionY
@@ -43,6 +43,9 @@ class ParameterObject:
         # constants for the BEC itself
         self.beta2 = beta2
         self.omega = omega
+
+        # decision if slow or not
+        self.slow = slow
 
     def initVharmonic(self, V0 = 1, gamma_y = 1):
         xx, yy = np.meshgrid(self.x, self.y, sparse=False, indexing='ij')
@@ -136,6 +139,13 @@ class WaveFunction2D:
         # normalizes Psi
         return np.sqrt( np.sum(np.abs(self.psi_array[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
 
+    def FFT(self):
+        # wrapper for 
+        if self.slow == True:
+            return self.calcFFT()
+        else:
+            return self.calcSlowFFT()
+
     def calcFFT(self):
         # calculates the FFT
         if not self.psi_contains_values:
@@ -146,6 +156,31 @@ class WaveFunction2D:
             self.psi_hat_contains_values = True
             return self.psi_hat_array
 
+    def calcSlowFFT(self):
+        N_x = psi.shape[0]
+        N_y = psi.shape[1]
+    
+        psi_hat = np.zeros((N_x, N_y)) + 0j
+        psi_hat_1 = np.zeros((N_x, N_y)) + 0j
+        #opti = np.zeros((N_x, N_y))
+    
+        for k in range (N_x):
+            psi_hat[k,:] = np.fft.fft(psi[k,:])
+        # psi_hat[:,:] = FFT_vectorized_img(psi[:,:])
+    
+        for p in range (N_y):
+            psi_hat_1[:,p] = np.fft.fft(psi_hat[:,p])
+        # psi_hat_1[:,:] = FFT_vectorized_img(psi_hat[:,:])
+    
+        return psi_hat_1
+    
+    def IFFT(self):
+        # wrapper for 
+        if self.slow == True:
+            return self.calcIFFT()
+        else:
+            return self.calcSlowIFFT()
+
     def calcIFFT(self):
         # calculates the inverse FFT
         if not self.psi_hat_contains_values:
@@ -155,6 +190,24 @@ class WaveFunction2D:
             # self.psi_array = np.fft.ifftshift(self.psi_array)
             self.psi_contains_values = True
             return self.psi_array
+
+    def ifft_2d(psi):
+        N_x = psi.shape[0]
+        N_y = psi.shape[1]
+    
+        psi_hat = np.zeros((N_x, N_y)) + 0j
+        psi_hat_1 = np.zeros((N_x, N_y)) + 0j
+        #opti = np.zeros((N_x, N_y))
+    
+        for k in range (N_x):
+            psi_hat[k,:] = np.fft.ifft(psi[k,:])
+        # psi_hat[:,:] = FFT_vectorized_img(psi[:,:])
+    
+        for p in range (N_y):
+            psi_hat_1[:,p] = np.fft.ifft(psi_hat[:,p])
+        # psi_hat_1[:,:] = FFT_vectorized_img(psi_hat[:,:])
+    
+        return psi_hat_1
 
     #@timer
     def calcL(self):
