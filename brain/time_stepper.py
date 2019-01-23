@@ -16,7 +16,7 @@ def timer(func):
     return wrapper
 
 class ImaginaryTimeStepper:
-    def __init__(self, psi_0, parameterObject, epsilon_iteration_step_limit = 10e-5, dtInit = 0.005, maxIterations = np.inf, filename="default.hdf5"):
+    def __init__(self, psi_0, parameterObject):
         if type(psi_0) != WaveFunction2D:
             raise TypeError("Parameter Psi_0 is not of type WaveFunction2D")
         self.psi_0 = psi_0
@@ -25,16 +25,16 @@ class ImaginaryTimeStepper:
             raise TypeError("Parameter parameterObject is not of type ParameterObject")
         self.paramObj = parameterObject
 
-        self.dt = dtInit # the initial value for the first time step
-        self.epsilon_iteration_step_limit = epsilon_iteration_step_limit # value for the accepted error for the next time step
-        self.maxIterations = maxIterations # max number of allowed time steps
+        self.dt = self.paramObj.dt # the initial value for the first time step
+        self.epsilon_iteration_step_limit = self.paramObj.epsilon_limit # value for the accepted error for the next time step
+        self.maxIterations = self.paramObj.maxIterations # max number of allowed time steps
 
         # set up array for the nth time step, starting at 0
         self.psi_n = self.psi_0
         self.n = 0
 
         # set up data manager
-        self.dataM = DataManager(filename)
+        self.dataM = DataManager(self.paramObj.filename)
         self.dataM.newFile()
         self.globalAttributes = {
             'omega': self.paramObj.omega,
@@ -162,7 +162,7 @@ class ImaginaryTimeStepper:
         self.psi_n = psi_m
         self.n += 1
 
-    def BFSP(self, epsilon_threshold):
+    def BFSP(self):
         # set up epsilon
         epsilon_iteration_step = 1
         epsilon_sum = 0
@@ -198,7 +198,7 @@ class ImaginaryTimeStepper:
             epsilon_sum += epsilon_iteration_step
 
             # see if a frame has to be saved
-            if epsilon_sum > epsilon_threshold:
+            if epsilon_sum > self.paramObj.epsilon_threshold:
                 attributes = {
                     'n': self.n,
                     't': self.n*self.dt,

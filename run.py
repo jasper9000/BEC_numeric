@@ -3,7 +3,7 @@ from numba import jit
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from brain import *
+from brain import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, PotentialChoice, Psi0Choice
 
 
 def plot2D(psi):
@@ -33,26 +33,41 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
     return anim
 
 
-#### initialize objects
-gamma_y = 1.5
-resolution = 256
+#### initialize parameters
+res_x = 256
+res_y = 256
+x_low = -16
+x_high = 16
+y_low = -16
+y_high = 16
+beta2 = 1000
+omega = 0.9,
+epsilon_limit=1e-10
+epsilon_threshold=1
+dt=0.005
+maxIterations=30_000
+filename='default.hdf5'
+potential_choice=PotentialChoice.HARMONIC
+potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5}
+psi0_choice=Psi0Choice.THOMAS_FERMI
+psi0_parameters={'gamma_y':1, 'sigma':1, 'x0':0, 'y0':0}
 
-p = ParameterObject(resolutionX=resolution, resolutionY=resolution, beta2=1000, omega=0.9)
-p.initVharmonic(gamma_y=gamma_y)
-# p.initVharmonic_quartic(1.2, 0.3)
-# p.initVperiodic(V0=20, kappa=np.pi/4)
+#### initialize objects
+
+p = ParameterObject(res_x, res_y, x_low, x_high, y_low, y_high,
+                    beta2, omega, epsilon_limit, epsilon_threshold, dt, maxIterations,
+                    filename, potential_choice, potential_parameters,
+                    psi0_choice, psi0_parameters)
+p.initV()
 
 psi0 = WaveFunction2D(p)
-# psi0.initPsi_0()
-# psi0.initPsiGauss(sigma=2.5, x0=1.5, y0=0)
-# psi0.initPsiGauss_double(sigma=1, x0=5, y0=0)
-psi0.initThomasFermi(gamma_y=gamma_y)
+psi0.initPsi_0()
 
 
-i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=1e-15, dtInit=0.002, maxIterations=50_000, filename='D:/bec_data/gamma.hdf5')
+i = ImaginaryTimeStepper(psi0, p)
 
-# BFSP
-i.BFSP(3)
+# start the simulation
+i.BFSP()
 
 # i.dataM.displayFrames(30)
 

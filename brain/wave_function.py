@@ -4,6 +4,7 @@ from numba import jit
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
+
 from .parameter_object import *
 
 # for the calculation of the energy
@@ -55,7 +56,7 @@ class WaveFunction2D:
             self.paramObj.choice_psi0_parameters['x0'],
             self.paramObj.choice_psi0_parameters['y0'])
         else:
-            print("[ERROR] Psi0 choice not recognized.")
+            raise ValueError("Psi0 choice not recognized.")
 
     def initThomasFermi(self, gamma_y):
         # xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')

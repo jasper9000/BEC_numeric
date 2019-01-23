@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog
+import tkinter.font as font
 from tkinter import messagebox
 
 import matplotlib as mpl
@@ -7,12 +7,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 import numpy as np
-if __name__ == "__main__":
-    from parameter_object import *
-else:
-    from .parameter_object import *
+from .parameter_object import *
 
-class MainApplication(tk.Frame):
+class ParameterApp(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
@@ -31,19 +28,23 @@ class MainApplication(tk.Frame):
         self.init_bottom_right()
 
     def init_frames(self):
-        self.top_left = tk.LabelFrame(self.parent, text='Raster-Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.top_right = tk.LabelFrame(self.parent, text='Physikalische Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.bottom_left = tk.LabelFrame(self.parent, text='Numerische Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.bottom_right = tk.LabelFrame(self.parent, text='Potential V', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
+        self.topLevelFrame = tk.Frame(self.parent)
+        self.topLevelFrame.grid()
+
+        self.top_left = tk.LabelFrame(self.topLevelFrame, text='Raster-Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
+        self.top_right = tk.LabelFrame(self.topLevelFrame, text='Physikalische Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
+        self.bottom_left = tk.LabelFrame(self.topLevelFrame, text='Numerische Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
+        self.bottom_right = tk.LabelFrame(self.topLevelFrame, text='Potential V', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
         
+
         # layout all of the main containers
         # self.parent.grid_rowconfigure(1, weight=1)
         # self.parent.grid_columnconfigure(0, weight=1)
 
-        self.top_left.grid(row=0, column=0, padx=self.padx, pady=self.pady)
-        self.top_right.grid(row=0, column=1, padx=self.padx, pady=self.pady)
-        self.bottom_left.grid(row=1, column=0, padx=self.padx, pady=self.pady)
-        self.bottom_right.grid(row=1, column=1, padx=self.padx, pady=self.pady)
+        self.top_left.grid(row=0, column=0, padx=self.padx, pady=self.pady, sticky='')
+        self.top_right.grid(row=0, column=1, padx=self.padx, pady=self.pady, sticky='')
+        self.bottom_left.grid(row=1, column=0, padx=self.padx, pady=self.pady, sticky='')
+        self.bottom_right.grid(row=1, column=1, padx=self.padx, pady=self.pady, sticky='')
 
     def init_top_left(self):
         # grid spacing parameters
@@ -208,6 +209,10 @@ class MainApplication(tk.Frame):
         V_label.grid(row=3, column=0)
         self.V_optionsmenu.grid(row=3, column=1, columnspan=4)
 
+        ## refresh button
+        self.V_refresh_button = tk.Button(self.top_right, command=self.updatePlot, text='Refresh')
+        self.V_refresh_button.grid(row=5, column=5)
+
         # # V harmonic
         self.V_harmonic_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
         self.V_harmonic_frame.grid(row=4, column=0, columnspan=5, padx=self.padx, pady=self.pady)
@@ -311,6 +316,11 @@ class MainApplication(tk.Frame):
         filename_label.grid(row=3, column=0)
         self.filename_entry.grid(row=3, column=1, columnspan=3)
 
+        ## start button
+        font_large = font.Font(family='Helvetica', size=25, weight='normal')
+        self.start_button = tk.Button(self.bottom_left, command=self.startCalculation, text='Starte Berechnung', width=15, height=1, font=font_large, bg='red')
+        self.start_button.grid(row=4, column=0, columnspan=5)
+
     def init_bottom_right(self):
         fig = Figure(figsize=(5, 4), dpi=100)
         ax = fig.add_subplot(111)
@@ -320,10 +330,6 @@ class MainApplication(tk.Frame):
         self.V_canvas = FigureCanvasTkAgg(fig, master=self.bottom_right)  # A tk.DrawingArea.
         self.V_canvas.draw()
         self.V_canvas.get_tk_widget().grid(row=0, column=0)
-
-        ## refresh button
-        self.V_refresh_button = tk.Button(self.bottom_right, command=self.updatePlot, text='Refresh')
-        self.V_refresh_button.grid(row=0, column=1)
 
     def changeFramePsi0(self, a, b, c):
         choice = self.psi0_option_sv.get()
@@ -473,19 +479,22 @@ class MainApplication(tk.Frame):
         self.V_canvas.draw()
 
     def onChange(self, a, b, c):
-        print(a, b, c)
-        print("on change")
+        pass
         
 
     def focusOut(self, a):
-        print("focus out")
         if self.applyChanges():
             self.paramObj.initV()
             self.updatePlot()
 
+    def startCalculation(self):
+        print("[INFO] Start of Simulation.")
+        if self.applyChanges():
+            self.paramObj.initV()
+            self.parent.destroy()
+
        
 if __name__ == "__main__":
-    print("main")
     root = tk.Tk()
-    MainApplication(root)
+    ParameterApp(root)
     root.mainloop()
