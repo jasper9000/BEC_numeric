@@ -1,13 +1,13 @@
 import numpy as np
-from enum import Enum
+from enum import IntEnum
 
-class PotentialChoice(Enum):
+class PotentialChoice(IntEnum):
     HARMONIC = 0
     HARMONIC_QUARTIC = 1
     HARMONIC_OPTIC = 2
     NOT_IMPLEMENTED = -1
 
-class Psi0Choice(Enum):
+class Psi0Choice(IntEnum):
     THOMAS_FERMI = 0
     GAUSS = 1
     NOT_IMPLEMENTED = -1
@@ -46,12 +46,12 @@ class ParameterObject:
         self.filename = filename
 
         # potential choice and psi_0 choice
-        self.choice_V = potential_choice
-        self.choice_V_parameters = potential_parameters
+        self.potential_choice = potential_choice
+        self.potential_parameters = potential_parameters
         self.V = None
 
-        self.choice_psi0 = psi0_choice
-        self.choice_psi0_parameters = psi0_parameters
+        self.psi0_choice = psi0_choice
+        self.psi0_parameters = psi0_parameters
 
     def __repr__(self):
         a = "x_low = {}, x_high = {}\n\
@@ -65,7 +65,7 @@ Potential parameters : {}\n\n\
 Psi0 : {}\n\
 Psi0 parameters : {}".format(self.x_low, self.x_high, self.y_low, self.y_high, self.resolutionX, self.resolutionY,
         self.beta2, self.omega, self.epsilon_limit, self.epsilon_threshold, self.dt,
-        self.maxIterations, self.filename, self.choice_V, self.choice_V_parameters, self.choice_psi0, self.choice_psi0_parameters)
+        self.maxIterations, self.filename, self.potential_choice, self.potential_parameters, self.psi0_choice, self.psi0_parameters)
         return a
 
     def updateGrid(self):
@@ -105,11 +105,11 @@ Psi0 parameters : {}".format(self.x_low, self.x_high, self.y_low, self.y_high, s
 
     def initV(self):
         self.updateGrid()
-        if self.choice_V == PotentialChoice.HARMONIC:
-            self.initVharmonic(1, self.choice_V_parameters['gamma_y'])
-        elif self.choice_V == PotentialChoice.HARMONIC_QUARTIC:
-            self.initVharmonic_quartic(self.choice_V_parameters['alpha'], self.choice_V_parameters['kappa_quartic'])
-        elif self.choice_V == PotentialChoice.HARMONIC_OPTIC:
-            self.initVperiodic(self.choice_V_parameters['V0'], self.choice_V_parameters['kappa_optic'])
+        if self.potential_choice == PotentialChoice.HARMONIC:
+            self.initVharmonic(1, self.potential_parameters['gamma_y'])
+        elif self.potential_choice == PotentialChoice.HARMONIC_QUARTIC:
+            self.initVharmonic_quartic(self.potential_parameters['alpha'], self.potential_parameters['kappa_quartic'])
+        elif self.potential_choice == PotentialChoice.HARMONIC_OPTIC:
+            self.initVperiodic(self.potential_parameters['V0'], self.potential_parameters['kappa_optic'])
         else:
             raise ValueError("Potential choice not recognized.")

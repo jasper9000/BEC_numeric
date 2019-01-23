@@ -7,7 +7,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 import numpy as np
-from .parameter_object import *
+from .parameter_object import ParameterObject, PotentialChoice, Psi0Choice
 
 class ParameterApp(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -17,6 +17,8 @@ class ParameterApp(tk.Frame):
         # set up standard parameters
         self.paramObj = ParameterObject()
         self.paramObj.initV()
+
+        self.pressedStart = False
 
         self.padx = 5
         self.pady = 5
@@ -153,7 +155,7 @@ class ParameterApp(tk.Frame):
         self.psi0_thomas_fermi_frame.grid(row=2, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         psi0_thomas_fermi_gamma_label = tk.Label(self.psi0_thomas_fermi_frame, text='Gamma y')
-        self.psi0_thomas_fermi_gamma_sv = tk.StringVar(value=self.paramObj.choice_psi0_parameters["gamma_y"])
+        self.psi0_thomas_fermi_gamma_sv = tk.StringVar(value=self.paramObj.psi0_parameters["gamma_y"])
         self.psi0_thomas_fermi_gamma_entry = tk.Entry(self.psi0_thomas_fermi_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_thomas_fermi_gamma_sv)
         self.psi0_thomas_fermi_gamma_entry.bind("<FocusOut>", self.focusOut)
         self.psi0_thomas_fermi_gamma_entry.bind("<Return>", self.focusOut)
@@ -167,19 +169,19 @@ class ParameterApp(tk.Frame):
         self.psi0_gauss_frame.grid(row=2, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         psi0_gauss_sigma_label = tk.Label(self.psi0_gauss_frame, text='Sigma')
-        self.psi0_gauss_sigma_sv = tk.StringVar(value=self.paramObj.choice_psi0_parameters["sigma"])
+        self.psi0_gauss_sigma_sv = tk.StringVar(value=self.paramObj.psi0_parameters["sigma"])
         self.psi0_gauss_sigma_entry = tk.Entry(self.psi0_gauss_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_gauss_sigma_sv)
         self.psi0_gauss_sigma_entry.bind("<FocusOut>", self.focusOut)
         self.psi0_gauss_sigma_entry.bind("<Return>", self.focusOut)
 
         psi0_gauss_x0_label = tk.Label(self.psi0_gauss_frame, text='x0')
-        self.psi0_gauss_x0_sv = tk.StringVar(value=self.paramObj.choice_psi0_parameters["x0"])
+        self.psi0_gauss_x0_sv = tk.StringVar(value=self.paramObj.psi0_parameters["x0"])
         self.psi0_gauss_x0_entry = tk.Entry(self.psi0_gauss_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_gauss_x0_sv)
         self.psi0_gauss_x0_entry.bind("<FocusOut>", self.focusOut)
         self.psi0_gauss_x0_entry.bind("<Return>", self.focusOut)
 
         psi0_gauss_y0_label = tk.Label(self.psi0_gauss_frame, text='y0')
-        self.psi0_gauss_y0_sv = tk.StringVar(value=self.paramObj.choice_psi0_parameters["y0"])
+        self.psi0_gauss_y0_sv = tk.StringVar(value=self.paramObj.psi0_parameters["y0"])
         self.psi0_gauss_y0_entry = tk.Entry(self.psi0_gauss_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_gauss_y0_sv)
         self.psi0_gauss_y0_entry.bind("<FocusOut>", self.focusOut)
         self.psi0_gauss_y0_entry.bind("<Return>", self.focusOut)
@@ -218,7 +220,7 @@ class ParameterApp(tk.Frame):
         self.V_harmonic_frame.grid(row=4, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         V_harmonic_gamma_label = tk.Label(self.V_harmonic_frame, text='Gamma y')
-        self.V_harmonic_gamma_sv = tk.StringVar(value=self.paramObj.choice_V_parameters["gamma_y"])
+        self.V_harmonic_gamma_sv = tk.StringVar(value=self.paramObj.potential_parameters["gamma_y"])
         self.V_harmonic_gamma_entry = tk.Entry(self.V_harmonic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_gamma_sv)
         self.V_harmonic_gamma_entry.bind("<FocusOut>", self.focusOut)
         self.V_harmonic_gamma_entry.bind("<Return>", self.focusOut)
@@ -231,13 +233,13 @@ class ParameterApp(tk.Frame):
         self.V_harmonic_quartic_frame.grid(row=4, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         V_harmonic_quartic_alpha_label = tk.Label(self.V_harmonic_quartic_frame, text='Alpha')
-        self.V_harmonic_quartic_alpha_sv = tk.StringVar(value=self.paramObj.choice_V_parameters["alpha"])
+        self.V_harmonic_quartic_alpha_sv = tk.StringVar(value=self.paramObj.potential_parameters["alpha"])
         self.V_harmonic_quartic_alpha_entry = tk.Entry(self.V_harmonic_quartic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_quartic_alpha_sv)
         self.V_harmonic_quartic_alpha_entry.bind("<FocusOut>", self.focusOut)
         self.V_harmonic_quartic_alpha_entry.bind("<Return>", self.focusOut)
 
         V_harmonic_quartic_kappa_label = tk.Label(self.V_harmonic_quartic_frame, text='Kappa')
-        self.V_harmonic_quartic_kappa_sv = tk.StringVar(value=self.paramObj.choice_V_parameters["kappa_quartic"])
+        self.V_harmonic_quartic_kappa_sv = tk.StringVar(value=self.paramObj.potential_parameters["kappa_quartic"])
         self.V_harmonic_quartic_kappa_entry = tk.Entry(self.V_harmonic_quartic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_quartic_kappa_sv)
         self.V_harmonic_quartic_kappa_entry.bind("<FocusOut>", self.focusOut)
         self.V_harmonic_quartic_kappa_entry.bind("<Return>", self.focusOut)
@@ -253,13 +255,13 @@ class ParameterApp(tk.Frame):
         self.V_harmonic_optic_frame.grid(row=4, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         V_harmonic_optic_v0_label = tk.Label(self.V_harmonic_optic_frame, text='V0')
-        self.V_harmonic_optic_v0_sv = tk.StringVar(value=self.paramObj.choice_V_parameters["V0"])
+        self.V_harmonic_optic_v0_sv = tk.StringVar(value=self.paramObj.potential_parameters["V0"])
         self.V_harmonic_optic_v0_entry = tk.Entry(self.V_harmonic_optic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_optic_v0_sv)
         self.V_harmonic_optic_v0_entry.bind("<FocusOut>", self.focusOut)
         self.V_harmonic_optic_v0_entry.bind("<Return>", self.focusOut)
 
         V_harmonic_optic_kappa_label = tk.Label(self.V_harmonic_optic_frame, text='Kappa')
-        self.V_harmonic_optic_kappa_sv = tk.StringVar(value=self.paramObj.choice_V_parameters["kappa_optic"])
+        self.V_harmonic_optic_kappa_sv = tk.StringVar(value=self.paramObj.potential_parameters["kappa_optic"])
         self.V_harmonic_optic_kappa_entry = tk.Entry(self.V_harmonic_optic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_optic_kappa_sv)
         self.V_harmonic_optic_kappa_entry.bind("<FocusOut>", self.focusOut)
         self.V_harmonic_optic_kappa_entry.bind("<Return>", self.focusOut)
@@ -336,11 +338,11 @@ class ParameterApp(tk.Frame):
         if choice == "Thomas-Fermi-Approximation":
             self.psi0_gauss_frame.grid_remove()
             self.psi0_thomas_fermi_frame.grid()
-            self.paramObj.choice_psi0 = Psi0Choice.THOMAS_FERMI
+            self.paramObj.psi0_choice = Psi0Choice.THOMAS_FERMI
         elif choice == "Gauss":
             self.psi0_thomas_fermi_frame.grid_remove()
             self.psi0_gauss_frame.grid()
-            self.paramObj.choice_psi0 = Psi0Choice.GAUSS
+            self.paramObj.psi0_choice = Psi0Choice.GAUSS
         else:
             messagebox.showerror("ERROR", "Choice for Psi0 not recognized, may not be implemented...")
             self.paramObj.choice_psi0 = Psi0Choice.NOT_IMPLEMENTED
@@ -354,20 +356,20 @@ class ParameterApp(tk.Frame):
             self.V_harmonic_optic_frame.grid_remove()
             self.V_harmonic_quartic_frame.grid_remove()
             self.V_harmonic_frame.grid()
-            self.paramObj.choice_V = PotentialChoice.HARMONIC
+            self.paramObj.potential_choice = PotentialChoice.HARMONIC
         elif choice == "Harmonisch + Quartisch":
             self.V_harmonic_frame.grid_remove()
             self.V_harmonic_optic_frame.grid_remove()
             self.V_harmonic_quartic_frame.grid()
-            self.paramObj.choice_V = PotentialChoice.HARMONIC_QUARTIC
+            self.paramObj.potential_choice = PotentialChoice.HARMONIC_QUARTIC
         elif choice == "Harmonisch + Optisch":
             self.V_harmonic_quartic_frame.grid_remove()
             self.V_harmonic_frame.grid_remove()
             self.V_harmonic_optic_frame.grid()
-            self.paramObj.choice_V = PotentialChoice.HARMONIC_OPTIC
+            self.paramObj.potential_choice = PotentialChoice.HARMONIC_OPTIC
         else:
             messagebox.showerror("ERROR", "Choice for potential V not recognized, may not be implemented...")
-            self.paramObj.choice_V = PotentialChoice.NOT_IMPLEMENTED
+            self.paramObj.potential_choice = PotentialChoice.NOT_IMPLEMENTED
 
         if self.applyChanges():
             self.paramObj.initV()
@@ -428,44 +430,44 @@ class ParameterApp(tk.Frame):
             return False
 
         # # Psi 0
-        if self.paramObj.choice_psi0 == Psi0Choice.THOMAS_FERMI:
+        if self.paramObj.psi0_choice == Psi0Choice.THOMAS_FERMI:
             try:
-                self.paramObj.choice_psi0_parameters['gamma_y'] = float(self.psi0_thomas_fermi_gamma_sv.get())
+                self.paramObj.psi0_parameters['gamma_y'] = float(self.psi0_thomas_fermi_gamma_sv.get())
             except ValueError:
                 messagebox.showerror("Werte-Fehler", "Wert für Gamma y muss eine Zahl sein!")
                 return False
-        elif self.paramObj.choice_psi0 == Psi0Choice.GAUSS:
+        elif self.paramObj.psi0_choice == Psi0Choice.GAUSS:
             try:
-                self.paramObj.choice_psi0_parameters['sigma'] = float(self.psi0_gauss_sigma_sv.get())
-                self.paramObj.choice_psi0_parameters['x0'] = float(self.psi0_gauss_y0_sv.get())
-                self.paramObj.choice_psi0_parameters['y0'] = float(self.psi0_gauss_y0_sv.get())
+                self.paramObj.psi0_parameters['sigma'] = float(self.psi0_gauss_sigma_sv.get())
+                self.paramObj.psi0_parameters['x0'] = float(self.psi0_gauss_y0_sv.get())
+                self.paramObj.psi0_parameters['y0'] = float(self.psi0_gauss_y0_sv.get())
             except ValueError:
                 messagebox.showerror("Werte-Fehler", "Alle Parameter für Psi0 müssen Zahlen sein!")
                 return False
 
         # # potential V
-        if self.paramObj.choice_V == PotentialChoice.HARMONIC:
+        if self.paramObj.potential_choice == PotentialChoice.HARMONIC:
             try:
-                self.paramObj.choice_V_parameters["gamma_y"] = float(self.V_harmonic_gamma_sv.get())
+                self.paramObj.potential_parameters["gamma_y"] = float(self.V_harmonic_gamma_sv.get())
             except ValueError:
                 messagebox.showerror("Werte-Fehler", "Wert für Gamma y muss eine Zahl sein!")
                 return False
-        elif self.paramObj.choice_V == PotentialChoice.HARMONIC_QUARTIC:
+        elif self.paramObj.potential_choice == PotentialChoice.HARMONIC_QUARTIC:
             try:
-                self.paramObj.choice_V_parameters["alpha"] = float(self.V_harmonic_quartic_alpha_sv.get())
-                self.paramObj.choice_V_parameters["kappa_quartic"] = float(self.V_harmonic_quartic_kappa_sv.get())
+                self.paramObj.potential_parameters["alpha"] = float(self.V_harmonic_quartic_alpha_sv.get())
+                self.paramObj.potential_parameters["kappa_quartic"] = float(self.V_harmonic_quartic_kappa_sv.get())
             except ValueError:
                 messagebox.showerror("Werte-Fehler", "Alle Parameter für V Harmonisch + Quartisch müssen Zahlen sein!")
                 return False
-        elif self.paramObj.choice_V == PotentialChoice.HARMONIC_OPTIC:
+        elif self.paramObj.potential_choice == PotentialChoice.HARMONIC_OPTIC:
             try:
-                self.paramObj.choice_V_parameters["V0"] = float(self.V_harmonic_optic_v0_sv.get())
-                self.paramObj.choice_V_parameters["kappa_optic"] = float(self.V_harmonic_optic_kappa_sv.get())
+                self.paramObj.potential_parameters["V0"] = float(self.V_harmonic_optic_v0_sv.get())
+                self.paramObj.potential_parameters["kappa_optic"] = float(self.V_harmonic_optic_kappa_sv.get())
             except ValueError:
                 messagebox.showerror("Werte-Fehler", "Alle Parameter für V Harmonisch + Optisch müssen Zahlen sein!")
                 return False
         else:
-            messagebox.showerror("ERROR", "ERROR")
+            messagebox.showerror("ERROR", "Potential not recognized")
             return False
 
         return True
@@ -492,6 +494,7 @@ class ParameterApp(tk.Frame):
         if self.applyChanges():
             self.paramObj.initV()
             self.parent.destroy()
+            self.pressedStart = True
 
        
 if __name__ == "__main__":

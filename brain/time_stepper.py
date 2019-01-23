@@ -47,7 +47,19 @@ class ImaginaryTimeStepper:
             'y_low' : self.paramObj.y_low,
             'y_high' : self.paramObj.y_high,
             'epsilon_limit': self.epsilon_iteration_step_limit,
-            'maxIterations': self.maxIterations
+            'epsilon_threshold' : self.paramObj.epsilon_threshold,
+            'maxIterations': self.maxIterations,
+            'potential_choice': int(self.paramObj.potential_choice),
+            'psi0_choice' : int(self.paramObj.psi0_choice),
+            'potential_gamma_y' : self.paramObj.potential_parameters['gamma_y'],
+            'potential_alpha' : self.paramObj.potential_parameters['alpha'],
+            'potential_kappa_quartic' : self.paramObj.potential_parameters['kappa_quartic'],
+            'potential_kappa_optic' : self.paramObj.potential_parameters['kappa_optic'],
+            'potential_V0' : self.paramObj.potential_parameters['V0'],
+            'psi0_gamma_y' : self.paramObj.psi0_parameters['gamma_y'],
+            'psi0_sigma' : self.paramObj.psi0_parameters['sigma'],
+            'psi0_x0' : self.paramObj.psi0_parameters['x0'],
+            'psi0_y0' : self.paramObj.psi0_parameters['y0']
         }
         self.dataM.setGlobalAttributes(self.globalAttributes)
     

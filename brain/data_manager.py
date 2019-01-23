@@ -138,9 +138,20 @@ class DataManager:
 
     def calcObservables(self):
         file_attr = self.file.attrs
-        p = ParameterObject(file_attr['resX'], file_attr['resY'],
-        file_attr['x_low'], file_attr['x_high'], file_attr['y_low'], file_attr['y_high'],
-        file_attr['beta'], file_attr['omega'])
+        V_param = {
+            "gamma_y" : file_attr['potential_gamma_y'],
+            "alpha" : file_attr['potential_alpha'],
+            "V0" : file_attr['potential_V0'],
+            "kappa_optic" : file_attr['potential_kappa_optic'],
+            "kappa_quaritc" : file_attr['potential_kappa_quartic']
+        }
+
+        p = ParameterObject(resolutionX=file_attr['resX'], resolutionY=file_attr['resY'],
+        x_low=file_attr['x_low'], x_high=file_attr['x_high'], y_low=file_attr['y_low'], y_high=file_attr['y_high'],
+        beta2=file_attr['beta'], omega=file_attr['omega'], potential_choice=file_attr['potential_choice'],
+        potential_parameters=V_param)
+
+        p.initV()
 
         w = WaveFunction2D(p)
         for i in range(self.getNFrames()):

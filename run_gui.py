@@ -13,17 +13,18 @@ if __name__ == "__main__":
     app = ParameterApp(root)
     root.mainloop()
 
-    p = app.paramObj
+    if app.pressedStart:
+        p = app.paramObj
 
-    del app
-    del root
+        del app
+        del root
 
-    psi0 = WaveFunction2D(p)
-    psi0.initPsi_0()
+        psi0 = WaveFunction2D(p)
+        psi0.initPsi_0()
 
-    i = ImaginaryTimeStepper(psi0, p)
+        i = ImaginaryTimeStepper(psi0, p)
 
-    # BFSP
-    i.BFSP()
-    # it's better to close the file manually...
-    i.dataM.closeFile()
+        # BFSP
+        i.BFSP()
+        # it's better to close the file manually...
+        i.dataM.closeFile()

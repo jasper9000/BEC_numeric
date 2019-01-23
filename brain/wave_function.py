@@ -5,7 +5,7 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
 
-from .parameter_object import *
+from .parameter_object import ParameterObject, Psi0Choice
 
 # for the calculation of the energy
 from scipy.integrate import simps
@@ -49,12 +49,12 @@ class WaveFunction2D:
         self.psi_hat_contains_values = True
 
     def initPsi_0(self):
-        if self.paramObj.choice_psi0 == Psi0Choice.THOMAS_FERMI:
-            self.initThomasFermi(self.paramObj.choice_psi0_parameters['gamma_y'])
-        elif self.paramObj.choice_psi0 == Psi0Choice.GAUSS:
-            self.initPsiGauss(self.paramObj.choice_psi0_parameters['sigma'],
-            self.paramObj.choice_psi0_parameters['x0'],
-            self.paramObj.choice_psi0_parameters['y0'])
+        if self.paramObj.psi0_choice == Psi0Choice.THOMAS_FERMI:
+            self.initThomasFermi(self.paramObj.psi0_parameters['gamma_y'])
+        elif self.paramObj.psi0_choice == Psi0Choice.GAUSS:
+            self.initPsiGauss(self.paramObj.psi0_parameters['sigma'],
+            self.paramObj.psi0_parameters['x0'],
+            self.paramObj.psi0_parameters['y0'])
         else:
             raise ValueError("Psi0 choice not recognized.")
 
