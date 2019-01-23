@@ -34,7 +34,7 @@ def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
 
 
 #### initialize objects
-gamma_y = 1
+gamma_y = 1.5
 resolution = 256
 
 p = ParameterObject(resolutionX=resolution, resolutionY=resolution, beta2=1000, omega=0.9)
@@ -48,12 +48,11 @@ psi0 = WaveFunction2D(p)
 # psi0.initPsiGauss_double(sigma=1, x0=5, y0=0)
 psi0.initThomasFermi(gamma_y=gamma_y)
 
-psi0.plot3D()
 
-i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=1e-15, dtInit=0.005, maxIterations=50_000, filename='D:/bec_data/10.hdf5')
+i = ImaginaryTimeStepper(psi0, p, epsilon_iteration_step_limit=1e-15, dtInit=0.002, maxIterations=50_000, filename='D:/bec_data/gamma.hdf5')
 
 # BFSP
-i.BFSP(1)
+i.BFSP(3)
 
 # i.dataM.displayFrames(30)
 

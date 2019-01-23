@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-filename = 'D:/bec_data/10.hdf5'
+filename = 'D:/bec_data/gamma.hdf5'
 # filename = 'saved_simulations/03.hdf5'
 
 d = DataManager(filename)
@@ -14,9 +14,9 @@ d.listInfo()
 
 # d.plotObservables()
 # d.displayFrames()
-d.calcObservables()
-d.displayFull()
+# d.calcObservables()
+# d.displayFull()
 # d.displayLastFrame()
 
-# d.saveFrames("D:/bec_data/srcritical_hd_long.mp4", fps=60)
+d.saveFrames("D:/bec_data/gamma.mp4", fps=40)
 d.closeFile()
