@@ -286,7 +286,7 @@ class ParameterApp(tk.Frame):
         self.dt_entry.bind("<FocusOut>", self.focusOut)
         self.dt_entry.bind("<Return>", self.focusOut)
 
-        epsilon_label = tk.Label(self.bottom_left, text='Epsilon')
+        epsilon_label = tk.Label(self.bottom_left, text='Epsilon Limit')
         self.epsilon_sv = tk.StringVar(value=self.paramObj.epsilon_limit)
         self.epsilon_sv.trace_add("write", self.onChange)
         self.epsilon_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.epsilon_sv)
@@ -306,6 +306,13 @@ class ParameterApp(tk.Frame):
         self.filename_entry.bind("<FocusOut>", self.focusOut)
         self.filename_entry.bind("<Return>", self.focusOut)
 
+        epsilon_threshold_label = tk.Label(self.bottom_left, text='Epsilon Threshold')
+        self.epsilon_threshold_sv = tk.StringVar(value=self.paramObj.epsilon_threshold)
+        self.epsilon_threshold_sv.trace_add("write", self.onChange)
+        self.epsilon_threshold_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.epsilon_threshold_sv)
+        self.epsilon_threshold_entry.bind("<FocusOut>", self.focusOut)
+        self.epsilon_threshold_entry.bind("<Return>", self.focusOut)
+
         dt_label.grid(row=0, column=0)
         self.dt_entry.grid(row=0, column=1)
 
@@ -318,10 +325,13 @@ class ParameterApp(tk.Frame):
         filename_label.grid(row=3, column=0)
         self.filename_entry.grid(row=3, column=1, columnspan=3)
 
+        epsilon_threshold_label.grid(row=4, column=0)
+        self.epsilon_threshold_entry.grid(row=4, column=1)
+
         ## start button
         font_large = font.Font(family='Helvetica', size=25, weight='normal')
         self.start_button = tk.Button(self.bottom_left, command=self.startCalculation, text='Starte Berechnung', width=15, height=1, font=font_large, bg='red')
-        self.start_button.grid(row=4, column=0, columnspan=5)
+        self.start_button.grid(row=5, column=0, columnspan=5)
 
     def init_bottom_right(self):
         fig = Figure(figsize=(5, 4), dpi=100)
@@ -415,6 +425,12 @@ class ParameterApp(tk.Frame):
     
         # add check for filename
         self.paramObj.filename = self.filename_sv.get()
+
+        try:
+            self.paramObj.epsilon_threshold = float(self.epsilon_threshold_sv.get())
+        except ValueError:
+            messagebox.showerror("Werte-Fehler", "Wert für Epsilon Threshold muss eine Zahl sein!")
+            return False
 
         # top right
         try:

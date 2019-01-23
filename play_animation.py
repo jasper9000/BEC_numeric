@@ -4,7 +4,7 @@ import os
 print(os.getcwd())
 
 # filename = 'D:/bec_data/gamma.hdf5'
-filename = 'default.hdf5'
+filename = 'D:/bec_data/default.hdf5'
 
 d = DataManager(filename)
 d.loadFile()
