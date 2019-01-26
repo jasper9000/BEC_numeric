@@ -196,7 +196,6 @@ class DataManager:
         plt.legend()
         plt.show()
 
-
     def displayFrames(self, playback_speed=20, dynamic_colorbar=True, figsize=(10, 8)):
         fig, ax = plt.subplots(figsize=figsize)
         shape = (self.file.attrs['resX'], self.file.attrs['resY'])

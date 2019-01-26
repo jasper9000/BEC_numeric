@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.font as font
 from tkinter import messagebox
+from tkinter.filedialog import asksaveasfilename
 
 import matplotlib as mpl
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -306,6 +307,8 @@ class ParameterApp(tk.Frame):
         self.filename_entry.bind("<FocusOut>", self.focusOut)
         self.filename_entry.bind("<Return>", self.focusOut)
 
+        self.filename_button = tk.Button(self.bottom_left, text='Ändern', command=self.chooseFile)
+
         epsilon_threshold_label = tk.Label(self.bottom_left, text='Epsilon Threshold')
         self.epsilon_threshold_sv = tk.StringVar(value=self.paramObj.epsilon_threshold)
         self.epsilon_threshold_sv.trace_add("write", self.onChange)
@@ -323,7 +326,8 @@ class ParameterApp(tk.Frame):
         self.maxIter_entry.grid(row=2, column=1)
 
         filename_label.grid(row=3, column=0)
-        self.filename_entry.grid(row=3, column=1, columnspan=3)
+        self.filename_entry.grid(row=3, column=1, columnspan=2)
+        self.filename_button.grid(row=3, column=3)
 
         epsilon_threshold_label.grid(row=4, column=0)
         self.epsilon_threshold_entry.grid(row=4, column=1)
@@ -487,6 +491,9 @@ class ParameterApp(tk.Frame):
             return False
 
         return True
+
+    def chooseFile(self):
+        self.filename_sv.set(asksaveasfilename())
 
     def updatePlot(self):
         # print(self.paramObj)
