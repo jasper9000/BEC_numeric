@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 
 import numpy as np
 from .parameter_object import ParameterObject, PotentialChoice, Psi0Choice
+from .wave_function import WaveFunction2D
 
 class ParameterApp(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -18,6 +19,9 @@ class ParameterApp(tk.Frame):
         # set up standard parameters
         self.paramObj = ParameterObject()
         self.paramObj.initV()
+
+        self.dt_constraint = None
+        self.calc_dt_constraint()
 
         self.pressedStart = False
 
@@ -286,6 +290,7 @@ class ParameterApp(tk.Frame):
         self.dt_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.dt_sv)
         self.dt_entry.bind("<FocusOut>", self.focusOut)
         self.dt_entry.bind("<Return>", self.focusOut)
+        self.dt_constraint_label = tk.Label(self.bottom_left, text='muss kleiner sein als {:1.2e}'.format(self.dt_constraint))
 
         epsilon_label = tk.Label(self.bottom_left, text='Epsilon Limit')
         self.epsilon_sv = tk.StringVar(value=self.paramObj.epsilon_limit)
@@ -318,6 +323,7 @@ class ParameterApp(tk.Frame):
 
         dt_label.grid(row=0, column=0)
         self.dt_entry.grid(row=0, column=1)
+        self.dt_constraint_label.grid(row=0, column=2)
 
         epsilon_label.grid(row=1, column=0)
         self.epsilon_entry.grid(row=1, column=1)
@@ -363,6 +369,7 @@ class ParameterApp(tk.Frame):
         if self.applyChanges():
             self.paramObj.initV()
             self.updatePlot()
+            self.update_dt_constraint()
 
     def changeFrameV(self, a, b, c):
         choice = self.V_option_sv.get()
@@ -388,6 +395,7 @@ class ParameterApp(tk.Frame):
         if self.applyChanges():
             self.paramObj.initV()
             self.updatePlot()
+            self.update_dt_constraint()
 
     def applyChanges(self):
         # top left
@@ -414,6 +422,7 @@ class ParameterApp(tk.Frame):
         except ValueError:
             messagebox.showerror("Werte-Fehler", "Wert für den Zeitschritt muss ein Zahl sein!")
             return False
+        
         
         try:
             self.paramObj.epsilon_limit = float(self.epsilon_sv.get())
@@ -506,18 +515,36 @@ class ParameterApp(tk.Frame):
     def onChange(self, a, b, c):
         pass
         
+    def calc_dt_constraint(self):
+        w = WaveFunction2D(self.paramObj)
+        w.initPsi_0()
+        b_ = self.paramObj.V + self.paramObj.beta2*np.abs(w.psi_array)**2
+        bmin = np.min(b_)
+        bmax = np.max(b_)
+        alpha = 0.5 * (bmax + bmin)
+        self.dt_constraint = 2/(bmax+bmin)
+
+    def update_dt_constraint(self):
+        self.calc_dt_constraint()
+        self.dt_constraint_label['text'] = 'muss kleiner sein als {:1.2e}'.format(self.dt_constraint)
 
     def focusOut(self, a):
         if self.applyChanges():
             self.paramObj.initV()
             self.updatePlot()
+        self.update_dt_constraint()
+
 
     def startCalculation(self):
         print("[INFO] Start of Simulation.")
         if self.applyChanges():
-            self.paramObj.initV()
-            self.parent.destroy()
-            self.pressedStart = True
+            self.update_dt_constraint()
+            if self.dt_constraint < self.paramObj.dt:
+                messagebox.showerror("Parameter-Fehler dt", "Der Zeitschritt dt muss kleiner sein als der angezeigte Maximalwert!")
+            else:
+                self.paramObj.initV()
+                self.parent.destroy()
+                self.pressedStart = True
 
        
 if __name__ == "__main__":
