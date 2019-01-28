@@ -132,7 +132,7 @@ class WaveFunction2D:
         dL = np.conjugate(self.psi_array)*self.L_psi_array
 
         self.L_expectation = simps(simps(dL, y), x)
-        return self.L_expectation
+        return self.L_expectation.real
 
     def calcNabla_expectation(self):
         x = self.paramObj.x

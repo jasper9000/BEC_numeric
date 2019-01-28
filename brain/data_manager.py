@@ -137,13 +137,14 @@ class DataManager:
         plt.show()
 
     def calcObservables(self):
+        print("[INFO] Calculating Observables now, this may take a while.")
         file_attr = self.file.attrs
         V_param = {
             "gamma_y" : file_attr['potential_gamma_y'],
             "alpha" : file_attr['potential_alpha'],
             "V0" : file_attr['potential_V0'],
             "kappa_optic" : file_attr['potential_kappa_optic'],
-            "kappa_quaritc" : file_attr['potential_kappa_quartic']
+            "kappa_quartic" : file_attr['potential_kappa_quartic']
         }
 
         p = ParameterObject(resolutionX=file_attr['resX'], resolutionY=file_attr['resY'],
@@ -239,7 +240,7 @@ class DataManager:
         shape = (self.file.attrs['resX'], self.file.attrs['resY'])
         data = np.random.rand(*shape)
         im = ax1.imshow(data, cmap='jet', animated=True, vmin=0, vmax=1)
-        fig.colorbar(im, ax=ax1)
+        cb = fig.colorbar(im, ax=ax1)
         # tx = ax.set_title('Title', animated=True)
         tx = ax1.text(0.05, 0.9, '', transform=ax1.transAxes, color="w")
         # tx = ax.text(.5, 1.005, 'test', transform = ax.transAxes)
@@ -285,8 +286,10 @@ class DataManager:
             pl1.set_data(t[:a], E[:a])
             pl2.set_data(t[:a], L[:a])
             pl3.set_data(t[:a], Nabla[:a])
+
+            cb.draw_all()
             
-            return tx, im, pl1, pl2, pl3
+            return tx, im, pl1, pl2, pl3, cb
 
         anim = animation.FuncAnimation(fig, update, blit=True, frames=lastKey+endingFrameDelay*fps, interval=playback_speed)
         plt.show()
