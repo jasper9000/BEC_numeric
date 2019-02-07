@@ -6,6 +6,7 @@ from tkinter.filedialog import asksaveasfilename
 import matplotlib as mpl
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 import numpy as np
 from .parameter_object import ParameterObject, PotentialChoice, Psi0Choice
@@ -27,7 +28,7 @@ class ParameterApp(tk.Frame):
 
         self.padx = 5
         self.pady = 5
-        # self.init_window()
+
         self.init_frames()
         self.init_top_left()
         self.init_top_right()
@@ -345,6 +346,8 @@ class ParameterApp(tk.Frame):
 
     def init_bottom_right(self):
         fig = Figure(figsize=(5, 4), dpi=100)
+        # fig.tight_layout()
+        # plt.close('all')
         ax = fig.add_subplot(111)
         self.im = ax.imshow(self.paramObj.V, cmap='jet')
         self.cb = fig.colorbar(self.im)
@@ -502,7 +505,10 @@ class ParameterApp(tk.Frame):
         return True
 
     def chooseFile(self):
-        self.filename_sv.set(asksaveasfilename())
+        filetypes = [('hdf5 database files', '*.hdf5'), ('All files', '*')]
+        filename = asksaveasfilename(title='Save as..', defaultextension='.hdf5', filetypes=filetypes)
+        if filename:
+            self.filename_sv.set(filename)
 
     def updatePlot(self):
         # print(self.paramObj)
@@ -521,7 +527,6 @@ class ParameterApp(tk.Frame):
         b_ = self.paramObj.V + self.paramObj.beta2*np.abs(w.psi_array)**2
         bmin = np.min(b_)
         bmax = np.max(b_)
-        alpha = 0.5 * (bmax + bmin)
         self.dt_constraint = 2/(bmax+bmin)
 
     def update_dt_constraint(self):

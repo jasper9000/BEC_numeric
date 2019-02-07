@@ -1,8 +1,4 @@
 import numpy as np
-from numba import jit
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-
 import tkinter as tk
 
 from brain import ParameterApp, WaveFunction2D, ImaginaryTimeStepper
@@ -10,6 +6,7 @@ from brain import ParameterApp, WaveFunction2D, ImaginaryTimeStepper
 
 if __name__ == "__main__":
     root = tk.Tk("Bose Einstein Kondensation")
+    root.title("Numerical ground state of rotating Bose-Einstein Condensates : Parameter Selection")
     app = ParameterApp(root)
     root.mainloop()
 

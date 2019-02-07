@@ -59,7 +59,8 @@ class ImaginaryTimeStepper:
             'psi0_gamma_y' : self.paramObj.psi0_parameters['gamma_y'],
             'psi0_sigma' : self.paramObj.psi0_parameters['sigma'],
             'psi0_x0' : self.paramObj.psi0_parameters['x0'],
-            'psi0_y0' : self.paramObj.psi0_parameters['y0']
+            'psi0_y0' : self.paramObj.psi0_parameters['y0'],
+            'calculated_observables' : False
         }
         self.dataM.setGlobalAttributes(self.globalAttributes)
     

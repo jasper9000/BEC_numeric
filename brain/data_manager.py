@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 from .wave_function import WaveFunction2D
-from .parameter_object import ParameterObject
+from .parameter_object import ParameterObject, Psi0Choice, PotentialChoice
 
 class DataManager:
-    def __init__(self, filename="default.hdf5", compression="gzip"):
+    def __init__(self, filename="default.hdf5"):
         self.filename = filename
         self.file = None
         self.fileOpen = False
-        self.compressionAlgo = compression
+        self.compressionAlgo = 'gzip'
         self.incKey = 0
 
     def __del__(self):
@@ -80,8 +80,19 @@ class DataManager:
     def listInfo(self):
         print("File Attributes")
         for attr in self.file.attrs:
-            print("{:20s} : {}".format(attr, self.file.attrs[attr]))
-        print("{:20s} : {}".format('Number of Frames', self.getNFrames()))
+            print("{:30s} : {}".format(attr, self.file.attrs[attr]))
+        print("{:30s} : {}".format('Number of Frames', self.getNFrames()))
+
+    def returnInfo(self):
+        s = ''
+        for attr in self.file.attrs:
+            if attr == "potential_choice":
+                s += "{:25s} : {}\n".format(attr, PotentialChoice(int(self.file.attrs[attr])).__str__())
+            elif attr == "psi0_choice":
+                s += "{:25s} : {}\n".format(attr, Psi0Choice(int(self.file.attrs[attr])).__str__())
+            else:
+                s += "{:25s} : {}\n".format(attr, self.file.attrs[attr])
+        return s
         
     def returnLastFrame(self):
         frame, _ = self.getDset(self.getLastKey())
@@ -136,60 +147,67 @@ class DataManager:
         plt.text(0.05, 0.9, text, color="w")
         plt.show()
 
-    def calcObservables(self):
-        print("[INFO] Calculating Observables now, this may take a while.")
+    def are_observables_calculated(self):
         file_attr = self.file.attrs
-        V_param = {
-            "gamma_y" : file_attr['potential_gamma_y'],
-            "alpha" : file_attr['potential_alpha'],
-            "V0" : file_attr['potential_V0'],
-            "kappa_optic" : file_attr['potential_kappa_optic'],
-            "kappa_quartic" : file_attr['potential_kappa_quartic']
-        }
+        try:
+            _ = file_attr['calculated_observables']
+        except:
+            self.file.attrs['calculated_observables'] = False
+        return file_attr['calculated_observables']
 
-        p = ParameterObject(resolutionX=file_attr['resX'], resolutionY=file_attr['resY'],
-        x_low=file_attr['x_low'], x_high=file_attr['x_high'], y_low=file_attr['y_low'], y_high=file_attr['y_high'],
-        beta2=file_attr['beta'], omega=file_attr['omega'], potential_choice=file_attr['potential_choice'],
-        potential_parameters=V_param)
+    def calcObservables(self):
+        file_attr = self.file.attrs
+        try:
+            _ = file_attr['calculated_observables']
+        except:
+            self.file.attrs['calculated_observables'] = False
 
-        p.initV()
+        if file_attr['calculated_observables']:
+            print("[INFO] The Observables were already calculated.")
+        else:
+            print("[INFO] Calculating Observables now, this may take a while.")
+            V_param = {
+                "gamma_y" : file_attr['potential_gamma_y'],
+                "alpha" : file_attr['potential_alpha'],
+                "V0" : file_attr['potential_V0'],
+                "kappa_optic" : file_attr['potential_kappa_optic'],
+                "kappa_quartic" : file_attr['potential_kappa_quartic']
+            }
 
-        w = WaveFunction2D(p)
-        for i in range(self.getNFrames()):
-            array, _ = self.getDset(self.makeKey(i))
-            w.setPsi(array)
-            w.calcFFT()
-            w.calcL()
-            w.calcNabla()
+            p = ParameterObject(resolutionX=file_attr['resX'], resolutionY=file_attr['resY'],
+            x_low=file_attr['x_low'], x_high=file_attr['x_high'], y_low=file_attr['y_low'], y_high=file_attr['y_high'],
+            beta2=file_attr['beta'], omega=file_attr['omega'], potential_choice=file_attr['potential_choice'],
+            potential_parameters=V_param)
 
-            self.file[self.makeKey(i)].attrs['E'] = w.calcEnergy()
-            self.file[self.makeKey(i)].attrs['L'] = w.calcL_expectation()
-            self.file[self.makeKey(i)].attrs['Nabla'] = w.calcNabla_expectation()
+            p.initV()
+
+            w = WaveFunction2D(p)
+            for i in range(self.getNFrames()):
+                array, _ = self.getDset(self.makeKey(i))
+                w.setPsi(array)
+                w.calcFFT()
+                w.calcL()
+                w.calcNabla()
+
+                self.file[self.makeKey(i)].attrs['E'] = w.calcEnergy()
+                self.file[self.makeKey(i)].attrs['L'] = w.calcL_expectation()
+                self.file[self.makeKey(i)].attrs['Nabla'] = w.calcNabla_expectation()
+            self.file.attrs['calculated_observables'] = True
+            print("[INFO] Calculated the obsevables successfully.")
 
     def getObservables(self):
+        self.calcObservables()
         E, L, Nabla, t = [], [], [], []
         for i in range(self.getNFrames()):
-            _, attributes = self.getDset(self.makeKey(i))
+            attributes = self.file[self.makeKey(i)].attrs
             t.append(attributes['t'])
             E.append(attributes['E'])
             L.append(attributes['L'])
             Nabla.append(attributes['Nabla'])
         return E, L, Nabla, t
 
-    def plotObservables(self, calc=True):
-        if calc:
-            self.calcObservables()
-        L = []
-        E = []
-        Nabla = []
-        t = []
-        for i in range(self.getNFrames()):
-            _, attr = self.getDset(self.makeKey(i))
-            t.append(attr['t'])
-
-            Nabla.append(attr['Nabla'])
-            E.append(attr['E'])
-            L.append(attr['L'])
+    def plotObservables(self):
+        E, L, Nabla, t = self.getObservables()
         
         plt.plot(t, E, label='E')
         plt.plot(t, L, label='L')
@@ -240,7 +258,7 @@ class DataManager:
         shape = (self.file.attrs['resX'], self.file.attrs['resY'])
         data = np.random.rand(*shape)
         im = ax1.imshow(data, cmap='jet', animated=True, vmin=0, vmax=1)
-        cb = fig.colorbar(im, ax=ax1)
+        fig.colorbar(im, ax=ax1)
         # tx = ax.set_title('Title', animated=True)
         tx = ax1.text(0.05, 0.9, '', transform=ax1.transAxes, color="w")
         # tx = ax.text(.5, 1.005, 'test', transform = ax.transAxes)
@@ -286,10 +304,8 @@ class DataManager:
             pl1.set_data(t[:a], E[:a])
             pl2.set_data(t[:a], L[:a])
             pl3.set_data(t[:a], Nabla[:a])
-
-            cb.draw_all()
             
-            return tx, im, pl1, pl2, pl3, cb
+            return tx, im, pl1, pl2, pl3
 
         anim = animation.FuncAnimation(fig, update, blit=True, frames=lastKey+endingFrameDelay*fps, interval=playback_speed)
         plt.show()
