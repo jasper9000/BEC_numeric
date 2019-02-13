@@ -75,8 +75,10 @@ class WaveFunction2D:
         
         Depending on the setting of the variable psi0_choice, Psi0 is either Gaußlike or 
         calculated with the Thomas-Fermi-Approximation.
+
         Args:
             self: Object of the class WaveFunction2D
+
         Raises:
             ValueError: Psi0 choice not recognized.
         """
@@ -90,6 +92,15 @@ class WaveFunction2D:
             raise ValueError("Psi0 choice not recognized.")
 
     def initThomasFermi(self, gamma_y):
+        """Initialize Psi with the Thomas-Fermi-Approximation.
+
+        Falculates my_g first with bet2 and gamma_y and then uses my_g to calculate the starting wavefunction,
+        then normalizes the wavefunction.
+
+        Args:
+            self: Object of class Wavefunction2D
+            gamma_y: Value greater than 0 
+        """ 
         # xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
         my_g = 0.5*np.sqrt(4*self.paramObj.beta2*gamma_y)
         self.psi_array = np.sqrt(np.maximum(0, my_g - self.paramObj.V)/self.paramObj.beta2)
@@ -97,7 +108,19 @@ class WaveFunction2D:
         self.psi_contains_values = True
 
     def initPsiGauss(self, sigma=1, x0=0, y0=0):
-        # initializes Psi with a simple 2d gaussian
+        """ initializes Psi with a simple 2d gaussian
+
+        Uses the normal distribution formula to initialize Psi, also normalizes it.
+
+        Args:
+            self: Object of class Wavefunction2D
+            sigma: the standart deviation
+            x0: x coordinate of the centerpoint
+            y0: y coordinate of the centerpoint
+
+        Returns:
+            A normalized 2D gaussian with the center at (x0,y0). Is also Object of the class Wavefunction2D.
+        """
         xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
 
         self.psi_array = 1/(sigma**2) * np.exp(-0.5*((xx-x0)**2 + (yy-y0)**2)/sigma**2)
@@ -106,7 +129,19 @@ class WaveFunction2D:
         return self.psi_array
 
     def initPsiGauss_double(self, sigma=1, x0=2, y0=0):
-        # initializes Psi with a simple 2d gaussian
+        """ initializes Psi with a double 2d gaussian
+
+        Uses the normal distribution formula 2 timeas to initialize Psi, also normalizes it.
+
+        Args:
+            self: Object of class Wavefunction2D
+            sigma: the standart deviation
+            x0: x coordinate of the centerpoint
+            y0: y coordinate of the centerpoint
+
+        Returns:
+            A normalized double 2D gaussian with the center at (x0,y0). Is also Object of the class Wavefunction2D.
+        """
         xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
 
         self.psi_array = 1/(sigma**2) * np.exp(-0.5*((xx-x0)**2 + (yy-y0)**2)/sigma**2)
@@ -116,16 +151,42 @@ class WaveFunction2D:
         return self.psi_array
 
     def norm(self):
-        # normalizes Psi
+        """normalizes Psi
+        
+        Args:
+            self: Object of class Wavefunction2D
+
+        Returns:
+            A normalized Psi. Is also Object of the class Wavefunction2D.
+        """
         self.psi_array /= np.sqrt( np.sum(np.abs(self.psi_array[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
         return self.psi_array
 
     def getNorm(self):
-        # normalizes Psi
+        """normalizes Psi
+        
+        Args:
+            self: Object of class Wavefunction2D
+
+        Returns:
+            A normalized Psi. Is also Object of the class Wavefunction2D. 
+        """
         return np.sqrt( np.sum(np.abs(self.psi_array[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
 
     def calcFFT(self):
-        # calculates the FFT
+        """ calculates the FFT
+        
+        Outputs the 2D Fast Fourier transform with the FFT algorithms in numpy
+
+        Args: 
+            self: Object of class Wavefunction2D
+        
+        Returns:
+            The 2D FFT of the given array. Is also Object of the class Wavefunction2D.
+
+        Raises:
+            ValueError: Psi does not contain values or psi was not initialized!
+        """
         if not self.psi_contains_values:
             raise ValueError("Psi does not contain values or Psi was not initialized!")
         else:
@@ -135,7 +196,19 @@ class WaveFunction2D:
             return self.psi_hat_array
 
     def calcIFFT(self):
-        # calculates the inverse FFT
+        """ calculates the IFFT
+        
+        Outputs the 2D inverse Fast Fourier transform with the FFT algorithms in numpy.
+
+        Args: 
+            self: Object of class Wavefunction2D
+        
+        Returns:
+            The 2D IFFT of the given array. Is also Object of the class Wavefunction2D.
+
+        Raises:
+            ValueError: Psi does not contain values or psi was not initialized!
+        """
         if not self.psi_hat_contains_values:
             raise ValueError("Psi_hat does not contain values or Psi_hat was not initialized!")
         else:
@@ -145,6 +218,17 @@ class WaveFunction2D:
             return self.psi_array
 
     def calcEnergy(self):
+        """calulates the Energy of a state.
+
+        Uses the class parameter_object to get the values for x, y, V, beta2 and omega,
+        to calculate E with the GPE.
+
+        Args:
+            self: Object of class Wavefunction2D
+        
+        Returns:
+            The Energy of a given state.
+        """
         x = self.paramObj.x
         y = self.paramObj.y
 
@@ -157,6 +241,7 @@ class WaveFunction2D:
         return self.E
 
     def calcL_expectation(self):
+        
         x = self.paramObj.x
         y = self.paramObj.y
 
@@ -175,6 +260,16 @@ class WaveFunction2D:
         return self.Nabla_expectation
 
     def calcNabla(self):
+        """Calculates the nabla operator acting on a wavefunction
+
+        -
+
+        Args:
+            self: Object of class Wavefunction2D
+        
+        Retruns:
+            The Wavfunction after the nabla operator was applied
+        """
         a, b, c, d = self.paramObj.getBoundaries()
         M, N = self.paramObj.getResolution()
         
@@ -204,8 +299,14 @@ class WaveFunction2D:
 
     @jit
     def calcL_jit(self):
-        # calculates L acting on psi
-
+        """Calculates L acting on a Wavefunction
+        
+        Args:
+            self: Object of class Wavefunction2D
+        
+        Returns:
+            The Wavfunction after the L operator was applied.
+        """
         # set some aliases for resolution and boundaries to make the code more readable
         a, b, c, d = self.paramObj.getBoundaries()
         M, N = self.paramObj.getResolution()
