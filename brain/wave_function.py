@@ -12,7 +12,9 @@ from scipy.integrate import simps
 
 
 class WaveFunction2D:
+    
     def __init__(self, parameterObject):
+        """ Initializer of Wavefunction2D """
         if type(parameterObject) != ParameterObject:
             raise TypeError("Argument parameterObject has to be of the type {}. Given is type {}.".format(type(ParameterObject), type(parameterObject)))
         
@@ -35,20 +37,49 @@ class WaveFunction2D:
         self.Nabla_expectation = None
     
     def setPsi(self, array):
-        # a method to manually set psi to a given 2d array
+        """A method to manually set psi to a given 2d array.
+
+        Checks if the shape of a given array matches the resolution and then sets it as psi.
+
+        Args:
+            self: WaveFunction2D
+            array: The array that is checked
+        
+        Raises:
+            ValueError: Shape of input array does not match the resolution.
+        """
         if array.shape != self.paramObj.getResolution():
-            raise ValueError("Shape {} of input array does not match the reesolution {}.".format(array.shape, self.paramObj.getResolution()))
+            raise ValueError("Shape {} of input array does not match the resolution {}.".format(array.shape, self.paramObj.getResolution()))
         self.psi_array = array
         self.psi_contains_values = True
 
     def setPsiHat(self, array):
-        # a method to manually set psi_hat to a given 2d array
+        """A method to manually set psi_hat to a given 2d array.
+
+        Checks if the shape of a given array matches the resolution and then sets it as psi hat. 
+
+        Args:
+            self: WaveFunction2D
+            array: The array that is checked
+        
+        Raises:
+            ValueError: Shape of input array does not match the resolution.
+        """
         if array.shape != self.paramObj.getResolution():
             raise ValueError("Shape {} of input array does not match the resolution {}.".format(array.shape, self.paramObj.getResolution()))
         self.psi_hat_array = array
         self.psi_hat_contains_values = True
 
     def initPsi_0(self):
+        """ Sets the starting function of the iteration.
+        
+        Depending on the setting of the variable psi0_choice, Psi0 is either Gaußlike or 
+        calculated with the Thomas-Fermi-Approximation.
+        Args:
+            self: Object of the class WaveFunction2D
+        Raises:
+            ValueError: Psi0 choice not recognized.
+        """
         if self.paramObj.psi0_choice == Psi0Choice.THOMAS_FERMI:
             self.initThomasFermi(self.paramObj.psi0_parameters['gamma_y'])
         elif self.paramObj.psi0_choice == Psi0Choice.GAUSS:
