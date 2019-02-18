@@ -42,7 +42,6 @@ class WaveFunction2D:
         Checks if the shape of a given array matches the resolution and then sets it as psi.
 
         Args:
-            self: WaveFunction2D
             array: The array that is checked
         
         Raises:
@@ -59,7 +58,6 @@ class WaveFunction2D:
         Checks if the shape of a given array matches the resolution and then sets it as psi hat. 
 
         Args:
-            self: WaveFunction2D
             array: The array that is checked
         
         Raises:
@@ -73,11 +71,8 @@ class WaveFunction2D:
     def initPsi_0(self):
         """ Sets the starting function of the iteration.
         
-        Depending on the setting of the variable psi0_choice, Psi0 is either Gaußlike or 
+        Depending on the setting of the variable psi0_choice, psi0 is either Gaußlike or 
         calculated with the Thomas-Fermi-Approximation.
-
-        Args:
-            self: Object of the class WaveFunction2D
 
         Raises:
             ValueError: Psi0 choice not recognized.
@@ -94,11 +89,10 @@ class WaveFunction2D:
     def initThomasFermi(self, gamma_y):
         """Initialize Psi with the Thomas-Fermi-Approximation.
 
-        Falculates my_g first with bet2 and gamma_y and then uses my_g to calculate the starting wavefunction,
+        Calculates my_g first with bet2 and gamma_y and then uses my_g to calculate the starting wavefunction,
         then normalizes the wavefunction.
 
         Args:
-            self: Object of class Wavefunction2D
             gamma_y: Value greater than 0 
         """ 
         # xx, yy = np.meshgrid(self.paramObj.x, self.paramObj.y, sparse=False, indexing='ij')
@@ -108,12 +102,11 @@ class WaveFunction2D:
         self.psi_contains_values = True
 
     def initPsiGauss(self, sigma=1, x0=0, y0=0):
-        """ initializes Psi with a simple 2d gaussian
+        """Initializes Psi with a simple 2d gaussian.
 
         Uses the normal distribution formula to initialize Psi, also normalizes it.
 
         Args:
-            self: Object of class Wavefunction2D
             sigma: the standart deviation
             x0: x coordinate of the centerpoint
             y0: y coordinate of the centerpoint
@@ -131,10 +124,9 @@ class WaveFunction2D:
     def initPsiGauss_double(self, sigma=1, x0=2, y0=0):
         """ initializes Psi with a double 2d gaussian
 
-        Uses the normal distribution formula 2 timeas to initialize Psi, also normalizes it.
+        Uses the normal distribution formula 2 times to initialize Psi, also normalizes it.
 
         Args:
-            self: Object of class Wavefunction2D
             sigma: the standart deviation
             x0: x coordinate of the centerpoint
             y0: y coordinate of the centerpoint
@@ -151,22 +143,23 @@ class WaveFunction2D:
         return self.psi_array
 
     def norm(self):
-        """normalizes Psi
+        """Normalizes psi_array.
         
-        Args:
-            self: Object of class Wavefunction2D
+        Saves and Outputs a normalized psi_array.
 
         Returns:
-            A normalized Psi. Is also Object of the class Wavefunction2D.
+            
         """
         self.psi_array /= np.sqrt( np.sum(np.abs(self.psi_array[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
         return self.psi_array
 
     def getNorm(self):
-        """normalizes Psi
+        """Normalizes psi_array.
         
-        Args:
-            self: Object of class Wavefunction2D
+        Outputs a normalized psi_array.
+
+        Returns:
+            The norm of psi_array 
 
         Returns:
             A normalized Psi. Is also Object of the class Wavefunction2D. 
@@ -174,13 +167,10 @@ class WaveFunction2D:
         return np.sqrt( np.sum(np.abs(self.psi_array[1:-1, 1:-1])**2) * self.paramObj.dx * self.paramObj.dy )
 
     def calcFFT(self):
-        """ calculates the FFT
+        """Calculates the FFT of psi_array.
         
-        Outputs the 2D Fast Fourier transform with the FFT algorithms in numpy
+        Saves and outputs the 2D Fast Fourier transform with the FFT algorithms in numpy.
 
-        Args: 
-            self: Object of class Wavefunction2D
-        
         Returns:
             The 2D FFT of the given array. Is also Object of the class Wavefunction2D.
 
@@ -196,13 +186,10 @@ class WaveFunction2D:
             return self.psi_hat_array
 
     def calcIFFT(self):
-        """ calculates the IFFT
+        """Calculates the IFFT of psi_array.
         
-        Outputs the 2D inverse Fast Fourier transform with the FFT algorithms in numpy.
+        Saves and outputs the 2D inverse Fast Fourier transform with the FFT algorithms in numpy.
 
-        Args: 
-            self: Object of class Wavefunction2D
-        
         Returns:
             The 2D IFFT of the given array. Is also Object of the class Wavefunction2D.
 
@@ -221,7 +208,7 @@ class WaveFunction2D:
         """calulates the Energy of a state.
 
         Uses the class parameter_object to get the values for x, y, V, beta2 and omega,
-        to calculate E with the GPE.
+        to calculate E with the GPE via the Simpson rule.
 
         Args:
             self: Object of class Wavefunction2D
@@ -263,9 +250,6 @@ class WaveFunction2D:
         """Calculates the nabla operator acting on a wavefunction
 
         -
-
-        Args:
-            self: Object of class Wavefunction2D
         
         Retruns:
             The Wavfunction after the nabla operator was applied
@@ -299,10 +283,8 @@ class WaveFunction2D:
 
     @jit
     def calcL_jit(self):
-        """Calculates L acting on a Wavefunction
+        """Calculates L acting on a Wavefunction.
         
-        Args:
-            self: Object of class Wavefunction2D
         
         Returns:
             The Wavfunction after the L operator was applied.
