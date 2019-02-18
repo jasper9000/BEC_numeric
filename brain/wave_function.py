@@ -12,9 +12,12 @@ from scipy.integrate import simps
 
 
 class WaveFunction2D:
-    
+    """Class which contains all the function acting on Wavefunctions.
+
+
+    """
     def __init__(self, parameterObject):
-        """ Initializer of Wavefunction2D """
+        """Initializer of Wavefunction2D """
         if type(parameterObject) != ParameterObject:
             raise TypeError("Argument parameterObject has to be of the type {}. Given is type {}.".format(type(ParameterObject), type(parameterObject)))
         
@@ -228,7 +231,12 @@ class WaveFunction2D:
         return self.E
 
     def calcL_expectation(self):
+        """Calculates an expectation for L acting on a Wavefunction.
         
+        
+        Returns:
+            The expectation Wavefunction after the L operator was applied.
+        """
         x = self.paramObj.x
         y = self.paramObj.y
 
@@ -247,12 +255,12 @@ class WaveFunction2D:
         return self.Nabla_expectation
 
     def calcNabla(self):
-        """Calculates the nabla operator acting on a wavefunction
+        """Calculates an approximation of the nabla operator acting on a wavefunction
 
-        -
+        
         
         Retruns:
-            The Wavfunction after the nabla operator was applied
+            The Wavefunction after the nabla operator was applied
         """
         a, b, c, d = self.paramObj.getBoundaries()
         M, N = self.paramObj.getResolution()
@@ -283,7 +291,7 @@ class WaveFunction2D:
 
     @jit
     def calcL_jit(self):
-        """Calculates L acting on a Wavefunction.
+        """Calculates an approximation of L acting on a Wavefunction.
         
         
         Returns:
@@ -351,7 +359,14 @@ class WaveFunction2D:
         return self.L_psi_array
 
     def calcG_m(self, psi_m, alpha):
-        # this function calculates G. supposed to be called by psi_n with a given Psi_m as a parameter
+        """Calculates G_m. 
+
+        G_m contains the potential, the density therm and the rotation therm of the GPE, as well as a stabilization factor.
+        
+        Args:
+            psi_m: 
+            alpha: stabilization parameter
+        """
         if alpha < 0:
             print("ALERT, alpha < 0!")
         if type(psi_m) != WaveFunction2D:
