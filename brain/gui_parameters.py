@@ -548,8 +548,8 @@ class ParameterApp(tk.Frame):
     def loadPresetBetaSmall(self):
         po = ParameterObject(resolutionX = 256, resolutionY = 256,
                             x_low = -16, x_high = 16, y_low = -16, y_high = 16,
-                            beta2 = 100, omega = 0.8,
-                            epsilon_limit=1e-12, epsilon_threshold=1, dt=0.005, maxIterations=70_000,
+                            beta2 = 100, omega = 0.85,
+                            epsilon_limit=1e-8, epsilon_threshold=1, dt=0.005, maxIterations=40_000,
                             filename='default.hdf5',
                             potential_choice=PotentialChoice.HARMONIC,
                             potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
