@@ -111,8 +111,11 @@ if __name__ == "__main__":
             i.BFSP()
             # it's better to close the file manually...
             i.dataM.closeFile()
+            print("[INFO] File {} was created.".format(p.filename))
             # time the simulation took
-            print("[INFO] This calculation took {} s.".format(time()-start))
+            m, s = divmod(int(time()-start), 60)
+            h, m = divmod(m, 60)
+            print("[INFO] This calculation took {} h {} min {} s.".format(h, m, s))
 
     elif choice == ProgramChoice.RESULTS:
         # Launch results app
