@@ -1,7 +1,7 @@
 # BEC_numeric
 
 ## Introduction
-This repository contains the implementation of numerical methods to compute the ground state of a ideal Bose-Einstein condensate (BEC). The evolution of a BEC is governed by the Gross-Pitaevski-Equation (GPE). This python program therefore solves the GPE in imaginary time with the method of gradient flow to obtain the energatically lowest state of the BEC, which is the ground state.
+This repository contains the implementation of numerical methods to compute the ground state of a rotating ideal Bose-Einstein condensate (BEC). The evolution of a BEC is governed by the Gross-Pitaevski-Equation (GPE). This python program therefore solves the GPE in imaginary time with the method of gradient flow to obtain the energatically lowest state of the BEC, which is the ground state.
 The method is described by Zeng & Zhang in their [publication](https://doi.org/10.1016/j.cpc.2008.12.003) 'Efficiently computing vortex lattices in rapid rotating Bose–Einstein condensates'. This project mostly follws their methods.
 
 ## Requirements
@@ -82,14 +82,14 @@ This sets one of the exit conditions for the simulation. Whenever the difference
 
  - max. Iteration Steps
 
-This is the second exit condition for the simulation. Whenever a maximum number of time steps have been simulated, the simulation stops..
+This is the second exit condition for the simulation. Whenever a maximum number of time steps have been simulated, the simulation stops.
 
  - Filename
 
 This is the name of the .hdf5 file in which the wavefunctions of selected time steps of the simulation will be saved.
 
  - Epsilon Threshold
- 
+
 This parameter controls the amount of time steps (frames) that are saved to the .hdf5 file. A small value will result in many saved frames and a larger filesize while a larger number will result in less saved frames.
 
 # TO DO

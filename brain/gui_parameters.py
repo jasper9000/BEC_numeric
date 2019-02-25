@@ -42,7 +42,7 @@ class ParameterApp(tk.Frame):
         self.preset_menu = tk.Menu(self.root_menu)
         self.root_menu.add_cascade(label="Example Parameter Presets", menu=self.preset_menu)
         self.preset_menu.add_command(label="No rotation (quick, a few minutes)", command=self.loadPresetNoRotation)
-        self.preset_menu.add_command(label="Harmonic trap with rotating weakly self-interacting BEC", command=self.loadPresetBetaSmall)
+        self.preset_menu.add_command(label="Harmonic trap with rotating weakly self-interacting BEC (15-25 min)", command=self.loadPresetBetaSmall)
         self.preset_menu.add_command(label="Harmonic trap with rotating strongly self-interacting BEC", command=self.loadPresetBetaLarge)
         self.preset_menu.add_command(label="Anisotropic harmonic trap", command=self.loadPresetAnisotropic)
         self.preset_menu.add_command(label="Harmonic + quartic trap (this takes very long, ca. 24h)", command=self.loadPresetHarmonicQuartic)
@@ -453,7 +453,6 @@ class ParameterApp(tk.Frame):
             self.filename_sv.set(filename)
 
     def updatePlot(self):
-        # print(self.paramObj)
         self.ax.set_xticklabels(np.linspace(self.paramObj.x_low, self.paramObj.x_high, 5))
         self.ax.set_yticklabels(np.linspace(self.paramObj.y_low, self.paramObj.y_high, 5))
 
@@ -507,10 +506,7 @@ class ParameterApp(tk.Frame):
         self.beta_sv.set(po.beta2)
         if po.psi0_choice == Psi0Choice.THOMAS_FERMI:
             self.psi0_option_sv.set(self.psi0_option_list[0])
-            print(self.psi0_thomas_fermi_gamma_sv.get())
-            print(po.psi0_parameters)
             self.psi0_thomas_fermi_gamma_sv.set(po.psi0_parameters['gamma_y'])
-            print(self.psi0_thomas_fermi_gamma_sv.get())
         elif po.psi0_choice == Psi0Choice.GAUSS:
             self.psi0_option_sv.set(self.psi0_option_list[1])
             self.psi0_gauss_sigma_sv.set(po.psi0_parameters['sigma'])
@@ -549,7 +545,7 @@ class ParameterApp(tk.Frame):
         po = ParameterObject(resolutionX = 256, resolutionY = 256,
                             x_low = -16, x_high = 16, y_low = -16, y_high = 16,
                             beta2 = 100, omega = 0.85,
-                            epsilon_limit=1e-8, epsilon_threshold=1, dt=0.005, maxIterations=40_000,
+                            epsilon_limit=1e-10, epsilon_threshold=1, dt=0.005, maxIterations=40_000,
                             filename='default.hdf5',
                             potential_choice=PotentialChoice.HARMONIC,
                             potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
@@ -559,8 +555,8 @@ class ParameterApp(tk.Frame):
     def loadPresetBetaLarge(self):
         po = ParameterObject(resolutionX = 256, resolutionY = 256,
                             x_low = -16, x_high = 16, y_low = -16, y_high = 16,
-                            beta2 = 1000, omega = 0.8,
-                            epsilon_limit=1e-12, epsilon_threshold=1, dt=0.005, maxIterations=70_000,
+                            beta2 = 1000, omega = 0.85,
+                            epsilon_limit=1e-10, epsilon_threshold=1, dt=0.005, maxIterations=40_000,
                             filename='default.hdf5',
                             potential_choice=PotentialChoice.HARMONIC,
                             potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},

@@ -1,92 +1,126 @@
+import tkinter as tk
+from tkinter import font
+
 import numpy as np
-from numba import jit
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+from brain import ResultsApp, ParameterApp, WaveFunction2D, ImaginaryTimeStepper
+from time import time
+from enum import Enum
 
-from brain import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, PotentialChoice, Psi0Choice
+class ProgramChoice(Enum):
+    '''This enumerator is just a good practice, but really not neccessary.
+    It keeps track of which program the user has selected.
+    '''
+    PARAMETERS = 0 
+    RESULTS = 1
+    NOT_IMPLEMENTED = 2
+
+class BECApp(tk.Frame):
+    '''Class that produces the initial GUI where the user selects, which operation they want to perform.
+    '''
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+        
+        # set up padding of GUI elements to make it look nicer.
+        self.padx = 25
+        self.pady = 25
+        self.ipadx = 15
+        self.ipady = 15
+
+        self.init_frame()
+
+    def init_frame(self):
+        '''Initializes the GUI elements.
+        '''
+        self.top_level_frame = tk.Frame(self.parent)
+        self.top_level_frame.pack()
+
+        # set up fonts
+        self.font_medium = font.Font(family="Helvetica", size=12, weight=tk.NORMAL)
+        self.font_large = font.Font(family="Helvetica", size=18, weight=tk.NORMAL)
+
+        t = ("Welcome!\n"
+            "If you want to simulate a Bose-Einstein Condensate and choose the Parameters for the simulation,\n"
+            "click the button on the left.\n"
+            "If you have a finished simulation and want to look at the results,\n"
+            "click the button in the right.")
+
+        # set up welcome text
+        info_label = tk.Label(self.top_level_frame, text=t, font=self.font_medium)
+        info_label.pack(side=tk.TOP, padx=self.padx, pady=self.pady, ipadx=self.ipadx, ipady=self.ipady)
+        
+        # set up buttons
+        self.parameters_button = tk.Button(self.top_level_frame, command=self.run_parameters, text="Parameters", font=self.font_large, borderwidth=5)
+        self.parameters_button.pack(side=tk.LEFT, padx=self.padx, pady=self.pady, ipadx=self.ipadx, ipady=self.ipady)
+
+        self.results_button = tk.Button(self.top_level_frame, command=self.run_results, text="Results", font=self.font_large, borderwidth=5)
+        self.results_button.pack(side=tk.RIGHT, padx=self.padx, pady=self.pady, ipadx=self.ipadx, ipady=self.ipady)
+
+    def run_parameters(self):
+        '''Executed when the user chose the parameter app.
+        Destroys window and spawns the parameter app.
+        '''
+        global root, choice
+        choice = ProgramChoice.PARAMETERS
+        root.destroy()
+
+    def run_results(self):
+        '''Executed when the user chose the results app.
+        Destroys window and spawns the results app.
+        '''
+        global root, choice
+        choice = ProgramChoice.RESULTS
+        root.destroy()
 
 
-def plot2D(psi):
-    plt.imshow(np.abs(psi))
-    plt.colorbar()
-    plt.show()
 
-def display_psi_array(array, playback_speed=20, dynamic_colorbar=True):
-    # a simple function that displays arrays of 2D image data as a animation
-    fig, ax = plt.subplots()
-    shape = array[0].shape
-    data = np.random.rand(shape[0],shape[1])
-    im = ax.imshow(data, cmap='jet', animated=True, vmin=0, vmax=1)
-    fig.colorbar(im)
-    tx = ax.set_title('Frame 0')
+if __name__ == "__main__":
+    choice = None
 
-    def update(i):
-        im.set_data(array[i])
-        tx.set_text("Frame {}".format(i))
-        if dynamic_colorbar:
-            vmin = np.min(array[i])
-            vmax = np.max(array[i])
-            im.set_clim(vmin,vmax)
-        return im
-    anim = animation.FuncAnimation(fig, update, blit=False, frames=len(array), interval=playback_speed)
-    plt.show()
-    return anim
+    # set up the window for the startup GUI
+    root = tk.Tk("Bose Einstein Kondensation")
+    root.title("Numerical ground state of rotating Bose-Einstein Condensates")
+    root.geometry('+30+30')
+    app = BECApp(root)
+    root.mainloop()
 
+    # if case: react to user input
+    if choice == ProgramChoice.PARAMETERS:
+        # launch parameters app
+        root = tk.Tk("Bose Einstein Kondensation")
+        root.title("Numerical ground state of rotating Bose-Einstein Condensates : Parameter Selection")
+        root.geometry("+40+40")
+        app = ParameterApp(root)
+        root.mainloop()
 
-#### initialize parameters
-res_x = 256
-res_y = 256
-x_low = -16
-x_high = 16
-y_low = -16
-y_high = 16
-beta2 = 1000
-omega = 0.9,
-epsilon_limit=1e-10
-epsilon_threshold=1
-dt=0.005
-maxIterations=30_000
-filename='default.hdf5'
-potential_choice=PotentialChoice.HARMONIC
-potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5}
-psi0_choice=Psi0Choice.THOMAS_FERMI
-psi0_parameters={'gamma_y':1, 'sigma':1, 'x0':0, 'y0':0}
+        # executed when the start simulation button was clicked
+        if app.pressedStart:
+            start = time()
+            # set up parameters and initial wave function according to user input
+            p = app.paramObj
 
-#### initialize objects
+            del app
+            del root
 
-p = ParameterObject(res_x, res_y, x_low, x_high, y_low, y_high,
-                    beta2, omega, epsilon_limit, epsilon_threshold, dt, maxIterations,
-                    filename, potential_choice, potential_parameters,
-                    psi0_choice, psi0_parameters)
-p.initV()
+            psi0 = WaveFunction2D(p)
+            psi0.initPsi_0()
 
-psi0 = WaveFunction2D(p)
-psi0.initPsi_0()
+            i = ImaginaryTimeStepper(psi0, p)
 
+            # starting the simulation
+            i.BFSP()
+            # it's better to close the file manually...
+            i.dataM.closeFile()
+            # time the simulation took
+            print("[INFO] This calculation took {} s.".format(time()-start))
 
-i = ImaginaryTimeStepper(psi0, p)
-
-# start the simulation
-i.BFSP()
-
-# i.dataM.displayFrames(30)
-
-# it's better to close the file manually...
-i.dataM.closeFile()
-
-############################################
-# THE OLD METHOD, BESP
-# DOES NOT WORK VERY WELL...
-
-# # calculate frames
-# # just do 20 frames as an example
-# frames = [i.returnFrame()]
-# for t in range(20):
-#     print("Calculating Frame {}".format(t+1))
-#     i.calculate_time_step()
-#     frames.append(i.returnFrame())
-#     print("Epsilon_t = {}".format(np.max(np.abs(frames[t] - frames[t+1]))))
-
-# # display the frames
-# display_psi_array(frames, 200)
-############################################
+    elif choice == ProgramChoice.RESULTS:
+        # Launch results app
+        root = tk.Tk()
+        root.geometry("+40+40")
+        root.title("Numerical ground state of rotating Bose-Einstein Condensates : Result Presentation")
+        app = ResultsApp(root)
+        root.mainloop()
+    else:
+        # nothing was selected, quitting the program
+        print("[INFO] Nothing was selected, quitting.")
