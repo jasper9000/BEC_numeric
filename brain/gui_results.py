@@ -4,7 +4,7 @@ from tkinter import messagebox
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 
 import matplotlib as mpl
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -67,19 +67,20 @@ class ResultsApp(tk.Frame):
     def init_top_left(self):
         padY = 20
 
-        filename_label = tk.Label(self.top_left, text="Datei")
-        self.filename_sv = tk.StringVar(value="test")
+        filename_label = tk.Label(self.top_left, text="Filename")
+        self.filename_sv = tk.StringVar(value="")
         self.filename_entry = tk.Entry(self.top_left, width=45, justify=tk.RIGHT, textvariable=self.filename_sv, state=tk.DISABLED)
 
-        self.open_file_button = tk.Button(self.top_left, command=self.openFile, text='Öffne Datei')
-        self.close_file_button = tk.Button(self.top_left, command=self.closeFile, text='Schließe Datei')
+        self.open_file_button = tk.Button(self.top_left, command=self.openFile, text='Open File')
+        self.close_file_button = tk.Button(self.top_left, command=self.closeFile, text='Close File')
 
-        self.save_as_button = tk.Button(self.top_left, command=self.saveFrames, text='Speichere als .mp4 Datei')
+        self.save_as_button = tk.Button(self.top_left, command=self.saveFrames, text='Save as .mp4 File')
+        save_as_label = tk.Label(self.top_left, text="Converting to .mp4 format will only work if ffmpeg is installed on the system.\nThe conversion will freeze the GUI, just be patient and it will come back to life.")
 
-        self.play_button = tk.Button(self.top_left, command = self.continueAnimation, text='play |>')
-        self.pause_button = tk.Button(self.top_left, command = self.pauseAnimation, text='pause ||')
-        self.step_forward_button = tk.Button(self.top_left, command = self.stepForward, text='step >>')
-        self.step_backward_button = tk.Button(self.top_left, command = self.stepBackward, text='step <<')
+        self.play_button = tk.Button(self.top_left, command = self.continueAnimation, text='Play')
+        self.pause_button = tk.Button(self.top_left, command = self.pauseAnimation, text='Pause')
+        self.step_forward_button = tk.Button(self.top_left, command = self.stepForward, text='Step >>')
+        self.step_backward_button = tk.Button(self.top_left, command = self.stepBackward, text='Step <<')
 
         skip_frames_label = tk.Label(self.top_left, text='Number of Frames skipped on each screen refresh.\nA high value increases playback speed.')
         self.skip_frames_iv = tk.IntVar(value=0)
@@ -91,7 +92,8 @@ class ResultsApp(tk.Frame):
         self.open_file_button.grid(row=1, column=5, pady=padY)
         self.close_file_button.grid(row=1, column=6, pady=padY)
 
-        self.save_as_button.grid(row=2, column=0, columnspan=4, pady=padY)
+        self.save_as_button.grid(row=2, column=0, pady=padY)
+        save_as_label.grid(row=2, column=1, columnspan=4)
 
         self.play_button.grid(row=3, column=0, pady=padY)
         self.pause_button.grid(row=3, column=1, pady=padY)
@@ -112,20 +114,46 @@ class ResultsApp(tk.Frame):
     def init_bottom(self):
         self.fig, (self.ax0, self.ax1, self.ax2) = plt.subplots(1,3,figsize=(12,4))
 
-        self.fig.tight_layout()
+        self.fig.tight_layout(pad=2, w_pad=2.5, h_pad=2)
+
+        self.ax0.set_title("density probability distribution $|\\Psi|^2$")
+        self.ax0.set_xlabel("$x$")
+        self.ax0.set_xticks(np.linspace(0, 255, 5))
+        self.ax0.set_xticklabels(np.linspace(-16, 16, 5))
+        self.ax0.set_ylabel("$y$")
+        self.ax0.set_yticks(np.linspace(0, 255, 5))
+        self.ax0.set_yticklabels(np.linspace(-16, 16, 5))
+
+        self.ax1.set_title("phase of $\\Psi$")
+        self.ax1.set_xlabel("$x$")
+        self.ax1.set_xticks(np.linspace(0, 255, 5))
+        self.ax1.set_xticklabels(np.linspace(-16, 16, 5))
+        self.ax1.set_ylabel("$y$")
+        self.ax1.set_yticks(np.linspace(0, 255, 5))
+        self.ax1.set_yticklabels(np.linspace(-16, 16, 5))
+
+        self.ax2.set_title("observables of $\\Psi$")
+        self.ax2.set_xlabel("Imaginary Time $t$")
 
         shape = (256, 256)
         data = np.random.rand(*shape)
         self.im0 = self.ax0.imshow(data, cmap='jet', animated=True, vmin=0, vmax=1)
         self.im1 = self.ax1.imshow(data, cmap='jet', animated=True, vmin=0, vmax=1)
 
-        self.pl1, = self.ax2.plot([0], [0])
-        self.pl2, = self.ax2.plot([0], [0])
-        self.pl3, = self.ax2.plot([0], [0])
+        self.pl1, = self.ax2.plot([0], [0], label="Energy $E$")
+        self.pl2, = self.ax2.plot([0], [0], label="Angular momentum $L$")
+        self.pl3, = self.ax2.plot([0], [0], label="Kinetic Energy")
+
+        self.ax2.legend(fontsize=9)
 
         self.V_canvas = FigureCanvasTkAgg(self.fig, master=self.bottom)  # A tk.DrawingArea.
         self.V_canvas.draw()
         self.V_canvas.get_tk_widget().grid(row=0, column=0)
+
+        self.V_toolbar_frame = tk.Frame(self.bottom)
+        self.V_toolbar_frame.grid()
+        self.V_toolbar = NavigationToolbar2Tk(self.V_canvas, self.V_toolbar_frame)
+        self.V_toolbar.update()
 
     def openFile(self):
         filetypes = [('hdf5 database files', '*.hdf5'), ('All files', '*')]
@@ -141,7 +169,20 @@ class ResultsApp(tk.Frame):
             try:
                 self.parent.after(0, self.data_manager.loadFile())
                 self.open_file_button['state'] = tk.DISABLED
-                # set up plots
+                ## set up plots
+                # set up axis labels for image plots
+                x_high = self.data_manager.file.attrs['x_high']
+                x_low = self.data_manager.file.attrs['x_low']
+                y_high = self.data_manager.file.attrs['y_high']
+                y_low = self.data_manager.file.attrs['y_low']
+
+                self.ax0.set_xticklabels(np.linspace(x_low, x_high, 5))
+                self.ax0.set_yticklabels(np.linspace(y_low, y_high, 5))
+
+                self.ax1.set_xticklabels(np.linspace(x_low, x_high, 5))
+                self.ax1.set_yticklabels(np.linspace(y_low, y_high, 5))
+
+                # set up observable plot
                 if not self.data_manager.are_observables_calculated():
                     self.parameters_text.insert(tk.END, '\nThe observables have not yet been calculated!\nThis will take a bit.\nPlease do not close the window, it possibly corrupts the file.\n')
                 self.E, self.L, self.Nabla, self.t = self.data_manager.getObservables()
@@ -167,7 +208,6 @@ class ResultsApp(tk.Frame):
         self.animation_is_playing = False
         self.data_manager.closeFile()
         self.open_file_button['state'] = tk.NORMAL
-        print('close file')
 
     def saveFrames(self):
         print("[INFO] Saving the animation in .mp4 format, this will take a while.")

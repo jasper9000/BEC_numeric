@@ -30,18 +30,35 @@ class ParameterApp(tk.Frame):
         self.pady = 5
 
         self.init_frames()
+        self.init_menu()
         self.init_top_left()
         self.init_top_right()
         self.init_bottom_left()
         self.init_bottom_right()
 
+    def init_menu(self):
+        self.root_menu = tk.Menu(self.parent)
+        self.parent.config(menu=self.root_menu)
+        self.preset_menu = tk.Menu(self.root_menu)
+        self.root_menu.add_cascade(label="Example Parameter Presets", menu=self.preset_menu)
+        self.preset_menu.add_command(label="No rotation (quick, a few minutes)", command=self.loadPresetNoRotation)
+        self.preset_menu.add_command(label="Harmonic trap with rotating weakly self-interacting BEC", command=self.loadPresetBetaSmall)
+        self.preset_menu.add_command(label="Harmonic trap with rotating strongly self-interacting BEC", command=self.loadPresetBetaLarge)
+        self.preset_menu.add_command(label="Anisotropic harmonic trap", command=self.loadPresetAnisotropic)
+        self.preset_menu.add_command(label="Harmonic + quartic trap (this takes very long, ca. 24h)", command=self.loadPresetHarmonicQuartic)
+
+
+        # helpmenu = Menu(menu)
+        # menu.add_cascade(label="Help", menu=helpmenu)
+        # helpmenu.add_command(label="About...", command=About)
+
     def init_frames(self):
         self.topLevelFrame = tk.Frame(self.parent)
         self.topLevelFrame.grid()
 
-        self.top_left = tk.LabelFrame(self.topLevelFrame, text='Raster-Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.top_right = tk.LabelFrame(self.topLevelFrame, text='Physikalische Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.bottom_left = tk.LabelFrame(self.topLevelFrame, text='Numerische Parameter', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
+        self.top_left = tk.LabelFrame(self.topLevelFrame, text='Grid Parameters', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
+        self.top_right = tk.LabelFrame(self.topLevelFrame, text='Physical Parameters', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
+        self.bottom_left = tk.LabelFrame(self.topLevelFrame, text='Numerical Parameters', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
         self.bottom_right = tk.LabelFrame(self.topLevelFrame, text='Potential V', labelanchor='nw', width=400, height=400, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
         
 
@@ -57,65 +74,57 @@ class ParameterApp(tk.Frame):
     def init_top_left(self):
         # grid spacing parameters
         x_low_label = tk.Label(self.top_left, text='x low')
-        self.x_low_sv = tk.StringVar(value=self.paramObj.x_low)
+        self.x_low_sv = tk.IntVar(value=self.paramObj.x_low)
         self.x_low_sv.trace_add("write", self.onChange)
-        self.x_low_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT, textvariable=self.x_low_sv)
-        self.x_low_entry.bind("<FocusOut>", self.focusOut)
-        self.x_low_entry.bind("<Return>", self.focusOut)
+        self.x_low_scale = tk.Scale(self.top_left, from_=-10, to_=-25, resolution=1, tickinterval=5, orient=tk.HORIZONTAL, variable=self.x_low_sv, length=150)
+        # self.x_low_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT, textvariable=self.x_low_sv)
+        # self.x_low_scale.bind("<FocusOut>", self.focusOut)
+        # self.x_low_scale.bind("<Return>", self.focusOut)
 
         x_high_label = tk.Label(self.top_left, text='x high')
-        self.x_high_sv = tk.StringVar(value=self.paramObj.x_high)
+        self.x_high_sv = tk.IntVar(value=self.paramObj.x_high)
         self.x_high_sv.trace_add("write", self.onChange)
-        self.x_high_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT, textvariable=self.x_high_sv)
-        self.x_high_entry.bind("<FocusOut>", self.focusOut)
-        self.x_high_entry.bind("<Return>", self.focusOut)
+        self.x_high_scale = tk.Scale(self.top_left, from_=10, to_=25, resolution=1, tickinterval=5, orient=tk.HORIZONTAL, variable=self.x_high_sv, length=150)
 
         y_low_label = tk.Label(self.top_left, text='y low')
-        self.y_low_sv = tk.StringVar(value=self.paramObj.y_low)
+        self.y_low_sv = tk.IntVar(value=self.paramObj.y_low)
         self.y_low_sv.trace_add("write", self.onChange)
-        self.y_low_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT, textvariable=self.y_low_sv)
-        self.y_low_entry.bind("<FocusOut>", self.focusOut)
-        self.y_low_entry.bind("<Return>", self.focusOut)
+        self.y_low_scale = tk.Scale(self.top_left, from_=-10, to_=-25, resolution=1, tickinterval=5, orient=tk.HORIZONTAL, variable=self.y_low_sv, length=150)
 
         y_high_label = tk.Label(self.top_left, text='y high')
-        self.y_high_sv = tk.StringVar(value=self.paramObj.y_high)
+        self.y_high_sv = tk.IntVar(value=self.paramObj.y_high)
         self.y_high_sv.trace_add("write", self.onChange)
-        self.y_high_entry = tk.Entry(self.top_left, width=10, justify=tk.RIGHT,textvariable=self.y_high_sv)
-        self.y_high_entry.bind("<FocusOut>", self.focusOut)
-        self.y_high_entry.bind("<Return>", self.focusOut)
+        self.y_high_scale = tk.Scale(self.top_left, from_=10, to_=25, resolution=1, tickinterval=5, orient=tk.HORIZONTAL, variable=self.y_high_sv, length=150)
 
         # self.top_left.grid_columnconfigure(2, minsize=80)
 
         x_low_label.grid(row=0, column=0)
-        self.x_low_entry.grid(row=0, column=1)
+        #self.x_low_entry.grid(row=0, column=1)
+        self.x_low_scale.grid(row=0, column=1)
 
-        x_high_label.grid(row=0, column=3)
-        self.x_high_entry.grid(row=0, column=4)
+        x_high_label.grid(row=0, column=2)
+        self.x_high_scale.grid(row=0, column=3)
 
         y_low_label.grid(row=1, column=0)
-        self.y_low_entry.grid(row=1, column=1)
+        self.y_low_scale.grid(row=1, column=1)
 
-        y_high_label.grid(row=1, column=3)
-        self.y_high_entry.grid(row=1, column=4)
+        y_high_label.grid(row=1, column=2)
+        self.y_high_scale.grid(row=1, column=3)
 
         # resolution
-        color_red = '#ff8080'
+        color_red = '#FF9A7E'
         self.resolution_frame = tk.Frame(self.top_left, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3, bg=color_red)
         self.resolution_frame.grid(row=2, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
-        res_x_label = tk.Label(self.resolution_frame, text='Auflösung x-Richtung', bg=color_red)
-        self.res_x_sv = tk.StringVar(value=self.paramObj.resolutionX)
+        res_x_label = tk.Label(self.resolution_frame, text='Resolution in x-direction', bg=color_red)
+        self.res_x_sv = tk.IntVar(value=self.paramObj.resolutionX)
         self.res_x_sv.trace_add("write", self.onChange)
-        self.res_x_entry = tk.Entry(self.resolution_frame, width=10, justify=tk.RIGHT, textvariable=self.res_x_sv)
-        self.res_x_entry.bind("<FocusOut>", self.focusOut)
-        self.res_x_entry.bind("<Return>", self.focusOut)
+        self.res_x_entry = tk.Scale(self.resolution_frame, from_=16, to_=1024, resolution=32, tickinterval=128, orient=tk.HORIZONTAL, variable=self.res_x_sv, length=200, bg=color_red, highlightthickness=0)
 
-        res_y_label = tk.Label(self.resolution_frame, text='Auflösung y-Richtung', bg=color_red)
-        self.res_y_sv = tk.StringVar(value=self.paramObj.resolutionY)
+        res_y_label = tk.Label(self.resolution_frame, text='Resolution in y-direction', bg=color_red)
+        self.res_y_sv = tk.IntVar(value=self.paramObj.resolutionY)
         self.res_y_sv.trace_add("write", self.onChange)
-        self.res_y_entry = tk.Entry(self.resolution_frame, width=10, justify=tk.RIGHT, textvariable=self.res_y_sv)
-        self.res_y_entry.bind("<FocusOut>", self.focusOut)
-        self.res_y_entry.bind("<Return>", self.focusOut)
+        self.res_y_entry = tk.Scale(self.resolution_frame, from_=16, to_=1024, resolution=32, tickinterval=128, orient=tk.HORIZONTAL, variable=self.res_y_sv, length=200, bg=color_red, highlightthickness=0)
 
         res_x_label.grid(row=0, column=0)
         self.res_x_entry.grid(row=0, column=1)
@@ -126,80 +135,75 @@ class ParameterApp(tk.Frame):
     def init_top_right(self):
         # omega and beta
         omega_label = tk.Label(self.top_right, text='Omega')
-        self.omega_sv = tk.StringVar(value=self.paramObj.omega)
+        self.omega_sv = tk.DoubleVar(value=self.paramObj.omega)
         self.omega_sv.trace_add("write", self.onChange)
-        self.omega_entry = tk.Entry(self.top_right, width=10, justify=tk.RIGHT, textvariable=self.omega_sv)
-        self.omega_entry.bind("<FocusOut>", self.focusOut)
-        self.omega_entry.bind("<Return>", self.focusOut)
+        self.omega_scale = tk.Scale(self.top_right, from_=0, to_=3, resolution=0.05, tickinterval=1, orient=tk.HORIZONTAL, variable=self.omega_sv, length=150)
 
         beta_label = tk.Label(self.top_right, text='Beta')
-        self.beta_sv = tk.StringVar(value=self.paramObj.beta2)
+        self.beta_sv = tk.DoubleVar(value=self.paramObj.beta2)
         self.beta_sv.trace_add("write", self.onChange)
-        self.beta_entry = tk.Entry(self.top_right, width=10, justify=tk.RIGHT, textvariable=self.beta_sv)
-        self.beta_entry.bind("<FocusOut>", self.focusOut)
-        self.beta_entry.bind("<Return>", self.focusOut)
+        self.beta_scale = tk.Scale(self.top_right, from_=100, to_=10000, resolution=100, tickinterval=4000, orient=tk.HORIZONTAL, variable=self.beta_sv, length=150)
+
+        omega_warning_label = tk.Label(self.top_right, text="The Parameter Omega is the dimensionless rotation frequency of the BEC.\nA value higher than 1 will only produce a result if\nthe harmonic + quartic potential is selected.")
 
         omega_label.grid(row=0, column=0)
-        self.omega_entry.grid(row=0, column=1)
+        self.omega_scale.grid(row=0, column=1)
 
         beta_label.grid(row=0, column=3)
-        self.beta_entry.grid(row=0, column=4)
+        self.beta_scale.grid(row=0, column=4)
+
+        omega_warning_label.grid(row=1, column=0, columnspan=6)
 
         # Psi 0
         self.psi0_option_list = ('Thomas-Fermi-Approximation', 'Gauss')
         self.psi0_option_sv = tk.StringVar(value=self.psi0_option_list[0])
 
-        psi0_label = tk.Label(self.top_right, text='Start-Wellenfunktion')
+        psi0_label = tk.Label(self.top_right, text='Initial Wavefunction')
         self.psi0_optionsmenu = tk.OptionMenu(self.top_right, self.psi0_option_sv, *self.psi0_option_list)
         self.psi0_option_sv.trace_add("write", self.changeFramePsi0)
 
-        psi0_label.grid(row=1, column=0)
-        self.psi0_optionsmenu.grid(row=1, column=1, columnspan=5)
+        psi0_label.grid(row=2, column=0)
+        self.psi0_optionsmenu.grid(row=2, column=1, columnspan=5)
 
         # # thomas fermi
         self.psi0_thomas_fermi_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.psi0_thomas_fermi_frame.grid(row=2, column=0, columnspan=5, padx=self.padx, pady=self.pady)
+        self.psi0_thomas_fermi_frame.grid(row=3, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         psi0_thomas_fermi_gamma_label = tk.Label(self.psi0_thomas_fermi_frame, text='Gamma y')
-        self.psi0_thomas_fermi_gamma_sv = tk.StringVar(value=self.paramObj.psi0_parameters["gamma_y"])
-        self.psi0_thomas_fermi_gamma_entry = tk.Entry(self.psi0_thomas_fermi_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_thomas_fermi_gamma_sv)
-        self.psi0_thomas_fermi_gamma_entry.bind("<FocusOut>", self.focusOut)
-        self.psi0_thomas_fermi_gamma_entry.bind("<Return>", self.focusOut)
-
+        self.psi0_thomas_fermi_gamma_sv = tk.DoubleVar(value=self.paramObj.psi0_parameters["gamma_y"])
+        self.psi0_thomas_fermi_gamma_sv.trace_add("write", self.onChange)
+        self.psi0_thomas_fermi_gamma_scale = tk.Scale(self.psi0_thomas_fermi_frame, from_=0.1, to_=3, resolution=0.1, tickinterval=0.9, orient=tk.HORIZONTAL, variable=self.psi0_thomas_fermi_gamma_sv, length=150)
 
         psi0_thomas_fermi_gamma_label.grid(row=0, column=0)
-        self.psi0_thomas_fermi_gamma_entry.grid(row=0, column=1)
+        self.psi0_thomas_fermi_gamma_scale.grid(row=0, column=1)
 
         # # gauss
         self.psi0_gauss_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.psi0_gauss_frame.grid(row=2, column=0, columnspan=5, padx=self.padx, pady=self.pady)
+        self.psi0_gauss_frame.grid(row=3, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         psi0_gauss_sigma_label = tk.Label(self.psi0_gauss_frame, text='Sigma')
-        self.psi0_gauss_sigma_sv = tk.StringVar(value=self.paramObj.psi0_parameters["sigma"])
-        self.psi0_gauss_sigma_entry = tk.Entry(self.psi0_gauss_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_gauss_sigma_sv)
-        self.psi0_gauss_sigma_entry.bind("<FocusOut>", self.focusOut)
-        self.psi0_gauss_sigma_entry.bind("<Return>", self.focusOut)
+        self.psi0_gauss_sigma_sv = tk.DoubleVar(value=self.paramObj.psi0_parameters["sigma"])
+        self.psi0_gauss_sigma_sv.trace_add("write", self.onChange)
+        self.psi0_gauss_sigma_scale = tk.Scale(self.psi0_gauss_frame, from_=0.1, to_=3, resolution=0.1, tickinterval=0.9, orient=tk.HORIZONTAL, variable=self.psi0_gauss_sigma_sv, length=200)
 
         psi0_gauss_x0_label = tk.Label(self.psi0_gauss_frame, text='x0')
-        self.psi0_gauss_x0_sv = tk.StringVar(value=self.paramObj.psi0_parameters["x0"])
-        self.psi0_gauss_x0_entry = tk.Entry(self.psi0_gauss_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_gauss_x0_sv)
-        self.psi0_gauss_x0_entry.bind("<FocusOut>", self.focusOut)
-        self.psi0_gauss_x0_entry.bind("<Return>", self.focusOut)
+        self.psi0_gauss_x0_sv = tk.DoubleVar(value=self.paramObj.psi0_parameters["x0"])
+        self.psi0_gauss_x0_sv.trace_add("write", self.onChange)
+        self.psi0_gauss_x0_scale = tk.Scale(self.psi0_gauss_frame, from_=-10, to_=10, resolution=0.5, tickinterval=5, orient=tk.HORIZONTAL, variable=self.psi0_gauss_x0_sv, length=150)
 
         psi0_gauss_y0_label = tk.Label(self.psi0_gauss_frame, text='y0')
-        self.psi0_gauss_y0_sv = tk.StringVar(value=self.paramObj.psi0_parameters["y0"])
-        self.psi0_gauss_y0_entry = tk.Entry(self.psi0_gauss_frame, width=10, justify=tk.RIGHT, textvariable=self.psi0_gauss_y0_sv)
-        self.psi0_gauss_y0_entry.bind("<FocusOut>", self.focusOut)
-        self.psi0_gauss_y0_entry.bind("<Return>", self.focusOut)
+        self.psi0_gauss_y0_sv = tk.DoubleVar(value=self.paramObj.psi0_parameters["y0"])
+        self.psi0_gauss_y0_sv.trace_add("write", self.onChange)
+        self.psi0_gauss_y0_scale = tk.Scale(self.psi0_gauss_frame, from_=-10, to_=10, resolution=0.5, tickinterval=5, orient=tk.HORIZONTAL, variable=self.psi0_gauss_y0_sv, length=150)
 
         psi0_gauss_sigma_label.grid(row=0, column=0)
-        self.psi0_gauss_sigma_entry.grid(row=0, column=1)
+        self.psi0_gauss_sigma_scale.grid(row=0, column=1, columnspan=3)
 
         psi0_gauss_x0_label.grid(row=1, column=0)
-        self.psi0_gauss_x0_entry.grid(row=1, column=1)
+        self.psi0_gauss_x0_scale.grid(row=1, column=1)
 
-        psi0_gauss_y0_label.grid(row=2, column=0)
-        self.psi0_gauss_y0_entry.grid(row=2, column=1)
+        psi0_gauss_y0_label.grid(row=1, column=2)
+        self.psi0_gauss_y0_scale.grid(row=1, column=3)
 
         self.psi0_thomas_fermi_frame.grid_remove()
         self.psi0_gauss_frame.grid_remove()
@@ -207,76 +211,71 @@ class ParameterApp(tk.Frame):
         self.psi0_thomas_fermi_frame.grid()
 
         # Potential V
-        self.V_option_list = ('Harmonisch', 'Harmonisch + Quartisch', 'Harmonisch + Optisch')
+        self.V_option_list = ('Harmonic', 'Harmonic + Quartic', 'Harmonic + Optic')
         self.V_option_sv = tk.StringVar(value=self.V_option_list[0])
         self.V_option_sv.trace_add("write", self.changeFrameV)
 
         V_label = tk.Label(self.top_right, text='Potential V')
         self.V_optionsmenu = tk.OptionMenu(self.top_right, self.V_option_sv, *self.V_option_list)
 
-        V_label.grid(row=3, column=0)
-        self.V_optionsmenu.grid(row=3, column=1, columnspan=4)
+        V_label.grid(row=4, column=0)
+        self.V_optionsmenu.grid(row=4, column=1, columnspan=4)
 
         ## refresh button
         self.V_refresh_button = tk.Button(self.top_right, command=self.updatePlot, text='Refresh')
-        self.V_refresh_button.grid(row=5, column=5)
+        self.V_refresh_button.grid(row=6, column=5)
 
         # # V harmonic
         self.V_harmonic_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.V_harmonic_frame.grid(row=4, column=0, columnspan=5, padx=self.padx, pady=self.pady)
+        self.V_harmonic_frame.grid(row=5, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         V_harmonic_gamma_label = tk.Label(self.V_harmonic_frame, text='Gamma y')
-        self.V_harmonic_gamma_sv = tk.StringVar(value=self.paramObj.potential_parameters["gamma_y"])
-        self.V_harmonic_gamma_entry = tk.Entry(self.V_harmonic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_gamma_sv)
-        self.V_harmonic_gamma_entry.bind("<FocusOut>", self.focusOut)
-        self.V_harmonic_gamma_entry.bind("<Return>", self.focusOut)
+        self.V_harmonic_gamma_sv = tk.DoubleVar(value=self.paramObj.potential_parameters["gamma_y"])
+        self.V_harmonic_gamma_sv.trace_add("write", self.onChange)
+        self.V_harmonic_gamma_scale = tk.Scale(self.V_harmonic_frame, from_=0.1, to_=3, resolution=0.1, tickinterval=0.9, orient=tk.HORIZONTAL, variable=self.V_harmonic_gamma_sv, length=150)
 
         V_harmonic_gamma_label.grid(row=0, column=0)
-        self.V_harmonic_gamma_entry.grid(row=0, column=1)
+        self.V_harmonic_gamma_scale.grid(row=0, column=1)
 
         # # harmonic quartic
         self.V_harmonic_quartic_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.V_harmonic_quartic_frame.grid(row=4, column=0, columnspan=5, padx=self.padx, pady=self.pady)
+        self.V_harmonic_quartic_frame.grid(row=5, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         V_harmonic_quartic_alpha_label = tk.Label(self.V_harmonic_quartic_frame, text='Alpha')
-        self.V_harmonic_quartic_alpha_sv = tk.StringVar(value=self.paramObj.potential_parameters["alpha"])
-        self.V_harmonic_quartic_alpha_entry = tk.Entry(self.V_harmonic_quartic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_quartic_alpha_sv)
-        self.V_harmonic_quartic_alpha_entry.bind("<FocusOut>", self.focusOut)
-        self.V_harmonic_quartic_alpha_entry.bind("<Return>", self.focusOut)
+        self.V_harmonic_quartic_alpha_sv = tk.DoubleVar(value=self.paramObj.potential_parameters["alpha"])
+        self.V_harmonic_quartic_alpha_sv.trace_add("write", self.onChange)
+        self.V_harmonic_quartic_alpha_scale = tk.Scale(self.V_harmonic_quartic_frame, from_=0, to_=3, resolution=0.1, tickinterval=1, orient=tk.HORIZONTAL, variable=self.V_harmonic_quartic_alpha_sv, length=150)
 
         V_harmonic_quartic_kappa_label = tk.Label(self.V_harmonic_quartic_frame, text='Kappa')
-        self.V_harmonic_quartic_kappa_sv = tk.StringVar(value=self.paramObj.potential_parameters["kappa_quartic"])
-        self.V_harmonic_quartic_kappa_entry = tk.Entry(self.V_harmonic_quartic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_quartic_kappa_sv)
-        self.V_harmonic_quartic_kappa_entry.bind("<FocusOut>", self.focusOut)
-        self.V_harmonic_quartic_kappa_entry.bind("<Return>", self.focusOut)
+        self.V_harmonic_quartic_kappa_sv = tk.DoubleVar(value=self.paramObj.potential_parameters["kappa_quartic"])
+        self.V_harmonic_quartic_kappa_sv.trace_add("write", self.onChange)
+        self.V_harmonic_quartic_kappa_scale = tk.Scale(self.V_harmonic_quartic_frame, from_=0, to_=3, resolution=0.1, tickinterval=1, orient=tk.HORIZONTAL, variable=self.V_harmonic_quartic_kappa_sv, length=150)
 
         V_harmonic_quartic_alpha_label.grid(row=0, column=0)
-        self.V_harmonic_quartic_alpha_entry.grid(row=0, column=1)
+        self.V_harmonic_quartic_alpha_scale.grid(row=0, column=1)
         
-        V_harmonic_quartic_kappa_label.grid(row=1, column=0)
-        self.V_harmonic_quartic_kappa_entry.grid(row=1, column=1)
+        V_harmonic_quartic_kappa_label.grid(row=0, column=2)
+        self.V_harmonic_quartic_kappa_scale.grid(row=0, column=3)
 
         # # harmonic optic
         self.V_harmonic_optic_frame = tk.Frame(self.top_right, padx=self.padx, pady=self.pady, relief=tk.GROOVE, borderwidth=3)
-        self.V_harmonic_optic_frame.grid(row=4, column=0, columnspan=5, padx=self.padx, pady=self.pady)
+        self.V_harmonic_optic_frame.grid(row=5, column=0, columnspan=5, padx=self.padx, pady=self.pady)
 
         V_harmonic_optic_v0_label = tk.Label(self.V_harmonic_optic_frame, text='V0')
-        self.V_harmonic_optic_v0_sv = tk.StringVar(value=self.paramObj.potential_parameters["V0"])
-        self.V_harmonic_optic_v0_entry = tk.Entry(self.V_harmonic_optic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_optic_v0_sv)
-        self.V_harmonic_optic_v0_entry.bind("<FocusOut>", self.focusOut)
-        self.V_harmonic_optic_v0_entry.bind("<Return>", self.focusOut)
+        self.V_harmonic_optic_v0_sv = tk.DoubleVar(value=self.paramObj.potential_parameters["V0"])
+        self.V_harmonic_optic_v0_sv.trace_add("write", self.onChange)
+        self.V_harmonic_optic_v0_scale = tk.Scale(self.V_harmonic_optic_frame, from_=0, to_=50, resolution=1, tickinterval=25, orient=tk.HORIZONTAL, variable=self.V_harmonic_optic_v0_sv, length=150)
 
         V_harmonic_optic_kappa_label = tk.Label(self.V_harmonic_optic_frame, text='Kappa')
-        self.V_harmonic_optic_kappa_sv = tk.StringVar(value=self.paramObj.potential_parameters["kappa_optic"])
-        self.V_harmonic_optic_kappa_entry = tk.Entry(self.V_harmonic_optic_frame, width=10, justify=tk.RIGHT, textvariable=self.V_harmonic_optic_kappa_sv)
-        self.V_harmonic_optic_kappa_entry.bind("<FocusOut>", self.focusOut)
-        self.V_harmonic_optic_kappa_entry.bind("<Return>", self.focusOut)
+        self.V_harmonic_optic_kappa_sv = tk.DoubleVar(value=self.paramObj.potential_parameters["kappa_optic"])
+        self.V_harmonic_optic_kappa_sv.trace_add("write", self.onChange)
+        self.V_harmonic_optic_kappa_scale = tk.Scale(self.V_harmonic_optic_frame, from_=0, to_=5, resolution=0.1, tickinterval=1, orient=tk.HORIZONTAL, variable=self.V_harmonic_optic_kappa_sv, length=150)
 
         V_harmonic_optic_v0_label.grid(row=0, column=0)
-        self.V_harmonic_optic_v0_entry.grid(row=0, column=1)
+        self.V_harmonic_optic_v0_scale.grid(row=0, column=1)
         
-        V_harmonic_optic_kappa_label.grid(row=1, column=0)
-        self.V_harmonic_optic_kappa_entry.grid(row=1, column=1)
+        V_harmonic_optic_kappa_label.grid(row=0, column=2)
+        self.V_harmonic_optic_kappa_scale.grid(row=0, column=3)
 
         self.V_harmonic_frame.grid_remove()
         self.V_harmonic_optic_frame.grid_remove()
@@ -286,71 +285,73 @@ class ParameterApp(tk.Frame):
 
     def init_bottom_left(self):
         dt_label = tk.Label(self.bottom_left, text='Delta t')
-        self.dt_sv = tk.StringVar(value=self.paramObj.dt)
+        self.dt_sv = tk.DoubleVar(value=self.paramObj.dt)
         self.dt_sv.trace_add("write", self.onChange)
-        self.dt_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.dt_sv)
-        self.dt_entry.bind("<FocusOut>", self.focusOut)
-        self.dt_entry.bind("<Return>", self.focusOut)
-        self.dt_constraint_label = tk.Label(self.bottom_left, text='muss kleiner sein als {:1.2e}'.format(self.dt_constraint))
+        self.dt_scale = tk.Scale(self.bottom_left, from_=0, to_=0.01, resolution=0.001, tickinterval=0.005, orient=tk.HORIZONTAL, variable=self.dt_sv, length=150)
+        self.dt_constraint_label = tk.Label(self.bottom_left, text='has to be smaller than {:1.2e}'.format(self.dt_constraint))
 
-        epsilon_label = tk.Label(self.bottom_left, text='Epsilon Limit')
-        self.epsilon_sv = tk.StringVar(value=self.paramObj.epsilon_limit)
+        epsilon_label = tk.Label(self.bottom_left, text='Epsilon Limit Exponent')
+        epsilon_label2 = tk.Label(self.bottom_left, text='This is an exit condition on the simulation.\nIf the difference of two adjacent frames is smaller than\n10 to the power of this exponent, the simulation terminates.')
+        self.epsilon_sv = tk.IntVar(value=-10)
         self.epsilon_sv.trace_add("write", self.onChange)
-        self.epsilon_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.epsilon_sv)
-        self.epsilon_entry.bind("<FocusOut>", self.focusOut)
-        self.epsilon_entry.bind("<Return>", self.focusOut)
+        self.epsilon_scale = tk.Scale(self.bottom_left, from_=-3, to_=-14, resolution=1, tickinterval=3, orient=tk.HORIZONTAL, variable=self.epsilon_sv, length=150)
 
-        maxIter_label = tk.Label(self.bottom_left, text='maximale Iterationen')
-        self.maxIter_sv = tk.StringVar(value=self.paramObj.maxIterations)
+        maxIter_label = tk.Label(self.bottom_left, text='max. number of Iterations')
+        self.maxIter_sv = tk.IntVar(value=self.paramObj.maxIterations)
         self.maxIter_sv.trace_add("write", self.onChange)
-        self.maxIter_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.maxIter_sv)
-        self.maxIter_entry.bind("<FocusOut>", self.focusOut)
-        self.maxIter_entry.bind("<Return>", self.focusOut)
+        self.maxIter_scale = tk.Scale(self.bottom_left, from_=10_000, to_=600_000, resolution=10_000, tickinterval=200_000, orient=tk.HORIZONTAL, variable=self.maxIter_sv, length=250)
 
-        filename_label = tk.Label(self.bottom_left, text='Dateiname')
+        filename_label = tk.Label(self.bottom_left, text='Filename')
         self.filename_sv = tk.StringVar(value=self.paramObj.filename)
         self.filename_entry = tk.Entry(self.bottom_left, width=30, justify=tk.RIGHT, textvariable=self.filename_sv)
-        self.filename_entry.bind("<FocusOut>", self.focusOut)
-        self.filename_entry.bind("<Return>", self.focusOut)
+        self.filename_entry['state'] = tk.DISABLED
 
-        self.filename_button = tk.Button(self.bottom_left, text='Ändern', command=self.chooseFile)
+        self.filename_button = tk.Button(self.bottom_left, text='Choose Filename', command=self.chooseFile)
 
         epsilon_threshold_label = tk.Label(self.bottom_left, text='Epsilon Threshold')
-        self.epsilon_threshold_sv = tk.StringVar(value=self.paramObj.epsilon_threshold)
+        epsilon_threshold_label2 = tk.Label(self.bottom_left, text='Relative amount of Frames saved during simulation.\nA lower number results in more saved frames and a larger filesize.')
+        self.epsilon_threshold_sv = tk.DoubleVar(value=1)
         self.epsilon_threshold_sv.trace_add("write", self.onChange)
-        self.epsilon_threshold_entry = tk.Entry(self.bottom_left, width=10, justify=tk.RIGHT, textvariable=self.epsilon_threshold_sv)
-        self.epsilon_threshold_entry.bind("<FocusOut>", self.focusOut)
-        self.epsilon_threshold_entry.bind("<Return>", self.focusOut)
+        self.epsilon_threshold_scale = tk.Scale(self.bottom_left, from_=0, to_=2, resolution=0.1, tickinterval=1, orient=tk.HORIZONTAL, variable=self.epsilon_threshold_sv, length=150)
 
         dt_label.grid(row=0, column=0)
-        self.dt_entry.grid(row=0, column=1)
+        self.dt_scale.grid(row=0, column=1)
         self.dt_constraint_label.grid(row=0, column=2)
 
         epsilon_label.grid(row=1, column=0)
-        self.epsilon_entry.grid(row=1, column=1)
+        self.epsilon_scale.grid(row=1, column=1)
+        epsilon_label2.grid(row=1, column=2, columnspan=2)
 
         maxIter_label.grid(row=2, column=0)
-        self.maxIter_entry.grid(row=2, column=1)
+        self.maxIter_scale.grid(row=2, column=1, columnspan=2)
 
         filename_label.grid(row=3, column=0)
         self.filename_entry.grid(row=3, column=1, columnspan=2)
         self.filename_button.grid(row=3, column=3)
 
         epsilon_threshold_label.grid(row=4, column=0)
-        self.epsilon_threshold_entry.grid(row=4, column=1)
+        self.epsilon_threshold_scale.grid(row=4, column=1)
+        epsilon_threshold_label2.grid(row=4, column=2, columnspan=2)
 
         ## start button
         font_large = font.Font(family='Helvetica', size=25, weight='normal')
-        self.start_button = tk.Button(self.bottom_left, command=self.startCalculation, text='Starte Berechnung', width=15, height=1, font=font_large, bg='red')
+        self.start_button = tk.Button(self.bottom_left, command=self.startCalculation, text='Start Simulation', width=15, height=1, font=font_large, bg='red')
         self.start_button.grid(row=5, column=0, columnspan=5)
 
     def init_bottom_right(self):
         fig = Figure(figsize=(5, 4), dpi=100)
-        # fig.tight_layout()
-        # plt.close('all')
-        ax = fig.add_subplot(111)
-        self.im = ax.imshow(self.paramObj.V, cmap='jet')
+        self.ax = fig.add_subplot(111)
+        plt.tight_layout()
+        self.im = self.ax.imshow(self.paramObj.V, cmap='jet')
         self.cb = fig.colorbar(self.im)
+
+        self.ax.set_title("Potential V")
+        self.ax.set_xlabel("$x$")
+        self.ax.set_xticks(np.linspace(0, 255, 5))
+        self.ax.set_xticklabels(np.linspace(-16, 16, 5))
+        self.ax.set_ylabel("$y$")
+        self.ax.set_yticks(np.linspace(0, 255, 5))
+        self.ax.set_yticklabels(np.linspace(-16, 16, 5))
 
         self.V_canvas = FigureCanvasTkAgg(fig, master=self.bottom_right)  # A tk.DrawingArea.
         self.V_canvas.draw()
@@ -376,17 +377,17 @@ class ParameterApp(tk.Frame):
 
     def changeFrameV(self, a, b, c):
         choice = self.V_option_sv.get()
-        if choice == "Harmonisch":
+        if choice == self.V_option_list[0]:
             self.V_harmonic_optic_frame.grid_remove()
             self.V_harmonic_quartic_frame.grid_remove()
             self.V_harmonic_frame.grid()
             self.paramObj.potential_choice = PotentialChoice.HARMONIC
-        elif choice == "Harmonisch + Quartisch":
+        elif choice == self.V_option_list[1]:
             self.V_harmonic_frame.grid_remove()
             self.V_harmonic_optic_frame.grid_remove()
             self.V_harmonic_quartic_frame.grid()
             self.paramObj.potential_choice = PotentialChoice.HARMONIC_QUARTIC
-        elif choice == "Harmonisch + Optisch":
+        elif choice == self.V_option_list[2]:
             self.V_harmonic_quartic_frame.grid_remove()
             self.V_harmonic_frame.grid_remove()
             self.V_harmonic_optic_frame.grid()
@@ -402,102 +403,43 @@ class ParameterApp(tk.Frame):
 
     def applyChanges(self):
         # top left
-        try:
-            self.paramObj.x_low = float(self.x_low_sv.get())
-            self.paramObj.x_high = float(self.x_high_sv.get())
-            self.paramObj.y_low = float(self.y_low_sv.get())
-            self.paramObj.y_high = float(self.y_high_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Werte für die Raster-Grenzen müssen Zahlen sein!")
-            return False
+        self.paramObj.x_low = self.x_low_sv.get()
+        self.paramObj.x_high = self.x_high_sv.get()
+        self.paramObj.y_low = self.y_low_sv.get()
+        self.paramObj.y_high = self.y_high_sv.get()
 
-        try:
-            # add check for negative values
-            self.paramObj.resolutionX = int(self.res_x_sv.get())
-            self.paramObj.resolutionY = int(self.res_y_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Werte für die Auflösung müssen ganze Zahlen sein!")
-            return False
+        self.paramObj.resolutionX = self.res_x_sv.get()
+        self.paramObj.resolutionY = self.res_y_sv.get()
+
 
         # bottom left
-        try:
-            self.paramObj.dt = float(self.dt_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Wert für den Zeitschritt muss ein Zahl sein!")
-            return False
-        
-        
-        try:
-            self.paramObj.epsilon_limit = float(self.epsilon_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Wert für Konvergenzparameter Epsilon muss eine Zahl sein!")
-            return False
-
-        try:
-            self.paramObj.maxIterations = int(self.maxIter_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Wert für die maximale Anzahl an Iterationen muss eine ganze Zahl sein!")
-            return False
-    
-        # add check for filename
+        self.paramObj.dt = self.dt_sv.get()
+        self.paramObj.epsilon_limit = 10**(self.epsilon_sv.get())
+        self.paramObj.maxIterations = self.maxIter_sv.get()
         self.paramObj.filename = self.filename_sv.get()
-
-        try:
-            self.paramObj.epsilon_threshold = float(self.epsilon_threshold_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Wert für Epsilon Threshold muss eine Zahl sein!")
-            return False
+        self.paramObj.epsilon_threshold = self.epsilon_threshold_sv.get() * 1/(200*self.paramObj.dt)
 
         # top right
-        try:
-            self.paramObj.omega = float(self.omega_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Wert für Rotationsfrequenz Omega muss eine Zahl sein!")
-            return False
-        
-        try:
-            self.paramObj.beta2 = float(self.beta_sv.get())
-        except ValueError:
-            messagebox.showerror("Werte-Fehler", "Wert für Beta muss eine Zahl sein!")
-            return False
+        self.paramObj.omega = self.omega_sv.get()
+        self.paramObj.beta2 = self.beta_sv.get()
 
         # # Psi 0
         if self.paramObj.psi0_choice == Psi0Choice.THOMAS_FERMI:
-            try:
-                self.paramObj.psi0_parameters['gamma_y'] = float(self.psi0_thomas_fermi_gamma_sv.get())
-            except ValueError:
-                messagebox.showerror("Werte-Fehler", "Wert für Gamma y muss eine Zahl sein!")
-                return False
+            self.paramObj.psi0_parameters['gamma_y'] = self.psi0_thomas_fermi_gamma_sv.get()
         elif self.paramObj.psi0_choice == Psi0Choice.GAUSS:
-            try:
-                self.paramObj.psi0_parameters['sigma'] = float(self.psi0_gauss_sigma_sv.get())
-                self.paramObj.psi0_parameters['x0'] = float(self.psi0_gauss_y0_sv.get())
-                self.paramObj.psi0_parameters['y0'] = float(self.psi0_gauss_y0_sv.get())
-            except ValueError:
-                messagebox.showerror("Werte-Fehler", "Alle Parameter für Psi0 müssen Zahlen sein!")
-                return False
+            self.paramObj.psi0_parameters['sigma'] = self.psi0_gauss_sigma_sv.get()
+            self.paramObj.psi0_parameters['x0'] = self.psi0_gauss_y0_sv.get()
+            self.paramObj.psi0_parameters['y0'] = self.psi0_gauss_y0_sv.get()
 
         # # potential V
         if self.paramObj.potential_choice == PotentialChoice.HARMONIC:
-            try:
-                self.paramObj.potential_parameters["gamma_y"] = float(self.V_harmonic_gamma_sv.get())
-            except ValueError:
-                messagebox.showerror("Werte-Fehler", "Wert für Gamma y muss eine Zahl sein!")
-                return False
+            self.paramObj.potential_parameters["gamma_y"] = self.V_harmonic_gamma_sv.get()
         elif self.paramObj.potential_choice == PotentialChoice.HARMONIC_QUARTIC:
-            try:
-                self.paramObj.potential_parameters["alpha"] = float(self.V_harmonic_quartic_alpha_sv.get())
-                self.paramObj.potential_parameters["kappa_quartic"] = float(self.V_harmonic_quartic_kappa_sv.get())
-            except ValueError:
-                messagebox.showerror("Werte-Fehler", "Alle Parameter für V Harmonisch + Quartisch müssen Zahlen sein!")
-                return False
+                self.paramObj.potential_parameters["alpha"] = self.V_harmonic_quartic_alpha_sv.get()
+                self.paramObj.potential_parameters["kappa_quartic"] = self.V_harmonic_quartic_kappa_sv.get()
         elif self.paramObj.potential_choice == PotentialChoice.HARMONIC_OPTIC:
-            try:
-                self.paramObj.potential_parameters["V0"] = float(self.V_harmonic_optic_v0_sv.get())
-                self.paramObj.potential_parameters["kappa_optic"] = float(self.V_harmonic_optic_kappa_sv.get())
-            except ValueError:
-                messagebox.showerror("Werte-Fehler", "Alle Parameter für V Harmonisch + Optisch müssen Zahlen sein!")
-                return False
+                self.paramObj.potential_parameters["V0"] = self.V_harmonic_optic_v0_sv.get()
+                self.paramObj.potential_parameters["kappa_optic"] = self.V_harmonic_optic_kappa_sv.get()
         else:
             messagebox.showerror("ERROR", "Potential not recognized")
             return False
@@ -512,6 +454,9 @@ class ParameterApp(tk.Frame):
 
     def updatePlot(self):
         # print(self.paramObj)
+        self.ax.set_xticklabels(np.linspace(self.paramObj.x_low, self.paramObj.x_high, 5))
+        self.ax.set_yticklabels(np.linspace(self.paramObj.y_low, self.paramObj.y_high, 5))
+
         self.im.set_data(self.paramObj.V)
         self.cb.set_clim(np.min(self.paramObj.V), np.max(self.paramObj.V))
         self.cb.set_ticks(np.linspace(np.min(self.paramObj.V), np.max(self.paramObj.V), 6))
@@ -519,7 +464,10 @@ class ParameterApp(tk.Frame):
         self.V_canvas.draw()
 
     def onChange(self, a, b, c):
-        pass
+        if self.applyChanges():
+            self.paramObj.initV()
+            self.updatePlot()
+        self.update_dt_constraint()
         
     def calc_dt_constraint(self):
         w = WaveFunction2D(self.paramObj)
@@ -531,7 +479,13 @@ class ParameterApp(tk.Frame):
 
     def update_dt_constraint(self):
         self.calc_dt_constraint()
-        self.dt_constraint_label['text'] = 'muss kleiner sein als {:1.2e}'.format(self.dt_constraint)
+        if self.dt_sv.get() > self.dt_constraint:
+            self.dt_sv.set(self.dt_constraint/2)
+        self.dt_scale.config(from_=self.dt_constraint/20)
+        self.dt_scale.config(to_=self.dt_constraint*(19/20))
+        self.dt_scale.config(resolution = self.dt_constraint/10)
+        self.dt_scale.config(tickinterval = self.dt_constraint/2)
+        self.dt_constraint_label['text'] = 'has to be smaller than {:1.2e}'.format(self.dt_constraint)
 
     def focusOut(self, a):
         if self.applyChanges():
@@ -539,6 +493,112 @@ class ParameterApp(tk.Frame):
             self.updatePlot()
         self.update_dt_constraint()
 
+    def applyPreset(self, po):
+        #top left
+        self.x_low_sv.set(po.x_low)
+        self.x_high_sv.set(po.x_high)
+        self.y_low_sv.set(po.y_low)
+        self.y_high_sv.set(po.y_high)
+        self.res_x_sv.set(po.resolutionX)
+        self.res_y_sv.set(po.resolutionY)
+
+        #top right
+        self.omega_sv.set(po.omega)
+        self.beta_sv.set(po.beta2)
+        if po.psi0_choice == Psi0Choice.THOMAS_FERMI:
+            self.psi0_option_sv.set(self.psi0_option_list[0])
+            print(self.psi0_thomas_fermi_gamma_sv.get())
+            print(po.psi0_parameters)
+            self.psi0_thomas_fermi_gamma_sv.set(po.psi0_parameters['gamma_y'])
+            print(self.psi0_thomas_fermi_gamma_sv.get())
+        elif po.psi0_choice == Psi0Choice.GAUSS:
+            self.psi0_option_sv.set(self.psi0_option_list[1])
+            self.psi0_gauss_sigma_sv.set(po.psi0_parameters['sigma'])
+            self.psi0_gauss_x0_sv.set(po.psi0_parameters['x0'])
+            self.psi0_gauss_y0_sv.set(po.psi0_parameters['y0'])
+
+        if po.potential_choice == PotentialChoice.HARMONIC:
+            self.V_option_sv.set(self.V_option_list[0])
+            self.V_harmonic_gamma_sv.set(po.potential_parameters["gamma_y"])
+        elif po.potential_choice == PotentialChoice.HARMONIC_QUARTIC:
+            self.V_option_sv.set(self.V_option_list[1])
+            self.V_harmonic_quartic_alpha_sv.set(po.potential_parameters["alpha"])
+            self.V_harmonic_quartic_kappa_sv.set(po.potential_parameters["kappa_quartic"])
+        elif po.potential_choice == PotentialChoice.HARMONIC_OPTIC:
+            self.V_option_sv.set(self.V_option_list[2])
+            self.V_harmonic_optic_v0_sv.set(po.potential_parameters["V0"])
+            self.V_harmonic_optic_kappa_sv.set(po.potential_parameters["kappa_optic"])
+
+        # bottom left
+        self.dt_sv.set(po.dt)
+        self.maxIter_sv.set(po.maxIterations)
+        self.epsilon_sv.set(int(np.log10(po.epsilon_limit)))
+
+    def loadPresetNoRotation(self):
+        po = ParameterObject(resolutionX = 256, resolutionY = 256,
+                            x_low = -16, x_high = 16, y_low = -16, y_high = 16,
+                            beta2 = 1000, omega = 0,
+                            epsilon_limit=1e-8, epsilon_threshold=1, dt=0.005, maxIterations=30_000,
+                            filename='default.hdf5',
+                            potential_choice=PotentialChoice.HARMONIC,
+                            potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
+                            psi0_choice=Psi0Choice.GAUSS, psi0_parameters={'gamma_y':1, 'sigma':1, 'x0':5, 'y0':5})
+        self.applyPreset(po)
+
+    def loadPresetBetaSmall(self):
+        po = ParameterObject(resolutionX = 256, resolutionY = 256,
+                            x_low = -16, x_high = 16, y_low = -16, y_high = 16,
+                            beta2 = 100, omega = 0.8,
+                            epsilon_limit=1e-12, epsilon_threshold=1, dt=0.005, maxIterations=70_000,
+                            filename='default.hdf5',
+                            potential_choice=PotentialChoice.HARMONIC,
+                            potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
+                            psi0_choice=Psi0Choice.THOMAS_FERMI, psi0_parameters={'gamma_y':1, 'sigma':1, 'x0':0, 'y0':0})
+        self.applyPreset(po)
+
+    def loadPresetBetaLarge(self):
+        po = ParameterObject(resolutionX = 256, resolutionY = 256,
+                            x_low = -16, x_high = 16, y_low = -16, y_high = 16,
+                            beta2 = 1000, omega = 0.8,
+                            epsilon_limit=1e-12, epsilon_threshold=1, dt=0.005, maxIterations=70_000,
+                            filename='default.hdf5',
+                            potential_choice=PotentialChoice.HARMONIC,
+                            potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
+                            psi0_choice=Psi0Choice.THOMAS_FERMI, psi0_parameters={'gamma_y':1, 'sigma':1, 'x0':0, 'y0':0})
+        self.applyPreset(po)
+
+    def loadPresetAnisotropic(self):
+        po = ParameterObject(resolutionX = 256, resolutionY = 256,
+                            x_low = -16, x_high = 16, y_low = -16, y_high = 16,
+                            beta2 = 1000, omega = 0.7,
+                            epsilon_limit=1e-8, epsilon_threshold=1, dt=0.005, maxIterations=60_000,
+                            filename='default.hdf5',
+                            potential_choice=PotentialChoice.HARMONIC,
+                            potential_parameters={'gamma_y':0.5, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
+                            psi0_choice=Psi0Choice.THOMAS_FERMI, psi0_parameters={'gamma_y':0.5, 'sigma':1, 'x0':0, 'y0':0})
+        self.applyPreset(po)
+
+    def loadPresetHarmonicQuartic(self):
+        po = ParameterObject(resolutionX = 512, resolutionY = 512,
+                            x_low = -16, x_high = 16, y_low = -16, y_high = 16,
+                            beta2 = 1000, omega = 2,
+                            epsilon_limit=1e-8, epsilon_threshold=1, dt=0.005, maxIterations=500_000,
+                            filename='default.hdf5',
+                            potential_choice=PotentialChoice.HARMONIC_QUARTIC,
+                            potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
+                            psi0_choice=Psi0Choice.THOMAS_FERMI, psi0_parameters={'gamma_y':1, 'sigma':1, 'x0':0, 'y0':0})
+        self.applyPreset(po)
+
+    def loadPresetHarmonicOptic(self):
+        po = ParameterObject(resolutionX = 256, resolutionY = 256,
+                            x_low = -16, x_high = 16, y_low = -16, y_high = 16,
+                            beta2 = 200, omega = 0.9,
+                            epsilon_limit=1e-8, epsilon_threshold=1, dt=0.005, maxIterations=100_000,
+                            filename='default.hdf5',
+                            potential_choice=PotentialChoice.HARMONIC_OPTIC,
+                            potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':10},
+                            psi0_choice=Psi0Choice.THOMAS_FERMI, psi0_parameters={'gamma_y':1, 'sigma':1, 'x0':0, 'y0':0})
+        self.applyPreset(po)
 
     def startCalculation(self):
         print("[INFO] Start of Simulation.")

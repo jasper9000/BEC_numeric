@@ -2,7 +2,7 @@ import numpy as np
 import tkinter as tk
 
 from brain import ParameterApp, WaveFunction2D, ImaginaryTimeStepper
-
+from time import time
 
 if __name__ == "__main__":
     root = tk.Tk("Bose Einstein Kondensation")
@@ -11,6 +11,7 @@ if __name__ == "__main__":
     root.mainloop()
 
     if app.pressedStart:
+        start = time()
         p = app.paramObj
 
         del app
@@ -25,3 +26,4 @@ if __name__ == "__main__":
         i.BFSP()
         # it's better to close the file manually...
         i.dataM.closeFile()
+        print("[INFO] This calculation took {:.2} s.".format(time()-start))
