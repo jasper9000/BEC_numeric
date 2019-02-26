@@ -93,8 +93,8 @@ This is the name of the .hdf5 file in which the wavefunctions of selected time s
 This parameter controls the amount of time steps (frames) that are saved to the .hdf5 file. A small value will result in many saved frames and a larger filesize while a larger number will result in less saved frames.
 
 # TO DO
- - [ ] Remove library dependencies on mpl_toolkits and scipy (wave_function.py)
- - [ ] Add a small GUI where the user can select if they want to look at results or calculate something new
+ - [x] Remove library dependencies on mpl_toolkits and scipy (wave_function.py)
+ - [x] Add a small GUI where the user can select if they want to look at results or calculate something new
  - [ ] look at the time evolution without imaginary time, i.e. the real time evolution compared to finding the ground state
  - [ ] find eingenstates of the condensate for higher energies than the ground state
  - [ ] (maybe) look at and implement other ways to solve the GPE (split step fourier method for time derivative)
