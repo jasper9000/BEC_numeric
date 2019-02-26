@@ -108,7 +108,7 @@ if __name__ == "__main__":
             i = ImaginaryTimeStepper(psi0, p)
 
             # starting the simulation
-            i.BFSP()
+            i.BFFP()
             # it's better to close the file manually...
             i.dataM.closeFile()
             print("[INFO] File {} was created.".format(p.filename))

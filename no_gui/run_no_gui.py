@@ -1,4 +1,4 @@
-from brain import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, PotentialChoice, Psi0Choice
+from .brain import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, PotentialChoice, Psi0Choice
 
 
 #### initialize parameters
@@ -35,7 +35,7 @@ psi0.initPsi_0()
 i = ImaginaryTimeStepper(psi0, p)
 
 # start the simulation
-i.BFSP()
+i.BFFP()
 
 # uncomment the following line to get a rough animation of the results.
 # i.dataM.displayFrames(30)

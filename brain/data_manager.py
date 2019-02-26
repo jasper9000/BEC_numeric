@@ -1,7 +1,9 @@
+__author__ = "Jasper Riebesehl"
+__version__ = "1.0"
+__email__ = "jasper.riebesehl@physnet.uni-hamburg.de"
+
 import numpy as np
 import h5py
-import os
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
