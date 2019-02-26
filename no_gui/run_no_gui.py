@@ -1,4 +1,6 @@
-from .brain import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, PotentialChoice, Psi0Choice
+import sys
+sys.path.append("..")
+from brain import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, PotentialChoice, Psi0Choice
 
 
 #### initialize parameters
