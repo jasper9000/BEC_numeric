@@ -1,7 +1,9 @@
 # BEC_numeric
 
 ## Introduction
-This repository contains the implementation of numerical methods to compute the ground state of a rotating ideal Bose-Einstein condensate (BEC). The evolution of a BEC is governed by the Gross-Pitaevski-Equation (GPE). This python program therefore solves the GPE in imaginary time with the method of gradient flow to obtain the energatically lowest state of the BEC, which is the ground state.
+This repository contains the implementation of numerical methods to compute the ground state of a rotating ideal Bose-Einstein condensate (BEC).
+Ihis project was created for the course "Die Kunst der Computer-basierten Modellierung und Simulation experimenteller Daten" at Universität Hamburg.
+The evolution of a BEC is governed by the Gross-Pitaevski-Equation (GPE). This python program therefore solves the GPE in imaginary time with the method of gradient flow to obtain the energatically lowest state of the BEC, which is the ground state.
 The method is described by Zeng & Zhang in their [publication](https://doi.org/10.1016/j.cpc.2008.12.003) 'Efficiently computing vortex lattices in rapid rotating Bose–Einstein condensates'. This project mostly follws their methods.
 
 ## Requirements
@@ -91,10 +93,3 @@ This is the name of the .hdf5 file in which the wavefunctions of selected time s
  - Epsilon Threshold
 
 This parameter controls the amount of time steps (frames) that are saved to the .hdf5 file. A small value will result in many saved frames and a larger filesize while a larger number will result in less saved frames.
-
-# TO DO
- - [x] Remove library dependencies on mpl_toolkits and scipy (wave_function.py)
- - [x] Add a small GUI where the user can select if they want to look at results or calculate something new
- - [ ] look at the time evolution without imaginary time, i.e. the real time evolution compared to finding the ground state
- - [ ] find eingenstates of the condensate for higher energies than the ground state
- - [ ] (maybe) look at and implement other ways to solve the GPE (split step fourier method for time derivative)

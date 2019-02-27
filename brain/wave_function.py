@@ -1,7 +1,3 @@
-__author__ = "Jasper Riebesehl"
-__version__ = "1.0"
-__email__ = "jasper.riebesehl@physnet.uni-hamburg.de"
-
 # References used in comments:
 # [1] Zeng, R & Zhang, Yanzhi. (2009). Efficiently computing vortex lattices in rapid rotating Bose–Einstein condensates.
 #     Computer Physics Communications. 180. 854-860. 10.1016/j.cpc.2008.12.003. 

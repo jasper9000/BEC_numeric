@@ -1,5 +1,6 @@
 import sys
 sys.path.append("..")
+# pylint my show an error here, but there actually is none
 from brain import ParameterObject, WaveFunction2D, ImaginaryTimeStepper, PotentialChoice, Psi0Choice
 
 

@@ -1,7 +1,3 @@
-__author__ = "Jasper Riebesehl"
-__version__ = "1.0"
-__email__ = "jasper.riebesehl@physnet.uni-hamburg.de"
-
 import tkinter as tk
 import tkinter.font as font
 from tkinter import messagebox

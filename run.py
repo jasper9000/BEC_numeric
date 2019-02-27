@@ -1,3 +1,5 @@
+# This script serves as an entry point to the package.
+
 import tkinter as tk
 from tkinter import font
 

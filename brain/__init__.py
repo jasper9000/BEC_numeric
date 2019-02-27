@@ -1,4 +1,5 @@
 __author__ = "Jasper Riebesehl"
+__coauthor__ = "Henry Frädrich"
 __version__ = "1.0"
 __email__ = "jasper.riebesehl@physnet.uni-hamburg.de"
 
