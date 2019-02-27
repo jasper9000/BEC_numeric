@@ -48,7 +48,7 @@ class ParameterApp(tk.Frame):
         self.root_menu.add_cascade(label="Example Parameter Presets", menu=self.preset_menu)
         self.preset_menu.add_command(label="No rotation (quick, a few minutes)", command=self.loadPresetNoRotation)
         self.preset_menu.add_command(label="Harmonic trap with rotating weakly self-interacting BEC (15-25 min)", command=self.loadPresetBetaSmall)
-        self.preset_menu.add_command(label="Harmonic trap with rotating strongly self-interacting BEC (45 min)", command=self.loadPresetBetaLarge)
+        self.preset_menu.add_command(label="Harmonic trap with rotating strongly self-interacting BEC (35-45 min)", command=self.loadPresetBetaLarge)
         self.preset_menu.add_command(label="Anisotropic harmonic trap (1h)", command=self.loadPresetAnisotropic)
         self.preset_menu.add_command(label="Harmonic + optic trap (1h)", command=self.loadPresetHarmonicOptic)
         self.preset_menu.add_command(label="Harmonic + quartic trap (this takes very long, ca. 24h)", command=self.loadPresetHarmonicQuartic)
@@ -595,8 +595,8 @@ class ParameterApp(tk.Frame):
         # defines a preset where rotation is present and the self interaction of the BEC is strong
         po = ParameterObject(resolutionX = 256, resolutionY = 256,
                             x_low = -16, x_high = 16, y_low = -16, y_high = 16,
-                            beta2 = 1000, omega = 0.85,
-                            epsilon_limit=1e-10, epsilon_threshold=1, dt=0.005, maxIterations=80_000,
+                            beta2 = 5000, omega = 0.9,
+                            epsilon_limit=1e-10, epsilon_threshold=1, dt=0.005, maxIterations=70_000,
                             filename='default.hdf5',
                             potential_choice=PotentialChoice.HARMONIC,
                             potential_parameters={'gamma_y':1, 'alpha':1.2, 'kappa_quartic':0.3, 'kappa_optic':0.7, 'V0':5},
